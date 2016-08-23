@@ -1,0 +1,2 @@
+# BCD
+block coordinate descent
