@@ -1,4 +1,4 @@
-function x = RBCD_size1(A, b, d, lower, upper, max_iter)
+function [x,y] = RBCD_size1(A, b, d, lower, upper, max_iter)
 % Random Block Coordinate Descent method to solve
 % min 1/2<x,Ax>-<b,x>
 % s.t. x in R^d, lower(i)<=x(i)<=upper(i)
@@ -15,11 +15,11 @@ x = lower;
 y = zeros(max_iter,1);
 residual = zeros(max_iter,1);
 L = diag(A); % for quadratic functions the Lipschitz constant is A_ii
-pL = L;
-for i=2:d
-    pL(i) = pL(i-1)+L(i);
-end
-pL=pL/sum(L);
+% pL = L;
+% for i=2:d
+%     pL(i) = pL(i-1)+L(i);
+% end
+% pL=pL/sum(L);
 nL = L/sum(L);
 for k=1:max_iter
     % how t choose i
@@ -30,7 +30,5 @@ for k=1:max_iter
     y(k) = fval(A,b,x);
     fprintf('iter;%5d, residual:%.8f, fval:%.8f\n',k,residual(k),y(k));
 end
-figure(1),
-plot(1:max_iter,y,'r');
-hold on;
+
 end

@@ -1,4 +1,4 @@
-function x = CBCD_size1(A, b, d, lower, upper, max_iter)
+function [x,y] = CBCD_size1(A, b, d, lower, upper, max_iter)
 % Cyclic Block Coordinate Descent method to solve
 % min 1/2<x,Ax>-<b,x>
 % s.t. x in R^d, lower(i)<=x(i)<=upper(i)
@@ -23,8 +23,6 @@ for k=1:max_iter
     y(k) = fval(A,b,x);
     fprintf('iter;%5d, residual:%.8f, fval:%.8f\n',k,residual(k),y(k));
 end
-figure(1),
-plot(1:max_iter,y);
-hold on;
+
 end
 

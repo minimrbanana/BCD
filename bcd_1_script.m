@@ -16,16 +16,27 @@ b = randn(d,1);
 % solution by x=b\A
 x = A\b;
 % solution by Gauss Seidel Method
+% omitted
+figure(1),
+clf;
 iters = 500;
-x1 = GaussSeidel(A, b, d, lower, upper, iters);
 % solution by CBCD with block size 1
-iters = 500;
-x2 = CBCD_size1(A, b, d, lower, upper, iters);
+[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
+plot(1:iters,y1);
+hold on;
 % solution by RBCD with block size 1
-iters = 500;
-x3 = RBCD_size1(A, b, d, lower, upper, iters);
+[x2,y2] = RBCD_size1(A, b, d, lower, upper, iters);
+plot(1:iters,y2,'r');
+hold on;
+% solution by CBCDmex with block size 1
+[x3, y3] = CBCD_size1_mex(A, b, d, lower, upper, iters);
+plot(1:iters,y3,'g--');
+hold on;
+% solution by CBCDmex with block size 1
+[x4, y4] = RBCD_size1_mex(A, b, d, lower, upper, iters);
+plot(1:iters,y4,'c--');
+hold on;
 % legend
-legend('G-S','CBCD','RBCD');
+legend('G-S','CBCD','RBCD','CBCD mex');
 % evaluation
 diff1 = norm(x - x1,2);
-diff2 = norm(x - x2,2);
