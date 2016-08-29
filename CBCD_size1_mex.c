@@ -29,9 +29,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    for (i=0;i<in_d;i++){
        out_x[i] = 0;
    }
-   plhs[1] = mxCreateDoubleMatrix(in_max_iter,1,mxREAL);
+   plhs[1] = mxCreateDoubleMatrix(in_max_iter+1,1,mxREAL);
    out_y = mxGetPr(plhs[1]);
-   for (i=0;i<in_max_iter;i++){
+   out_y[0] = fval_mex(in_A, in_b, in_d, out_x);
+   for (i=1;i<=in_max_iter;i++){
        out_y[i] = 0;
    }
    for (k=0;k<in_max_iter;k++){
@@ -61,7 +62,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            residual = residual + pow(Aix-in_b[i],2);
        }
        residual = sqrt(residual);
-       out_y[k] = fval_mex(in_A, in_b, in_d, out_x);
+       out_y[k+1] = fval_mex(in_A, in_b, in_d, out_x);
        mexPrintf("iter:%5d, residual=%.8f, fval:%.8f\n",k+1,residual,out_y[k]);
    }
 }

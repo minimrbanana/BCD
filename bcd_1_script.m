@@ -19,24 +19,25 @@ x = A\b;
 % omitted
 figure(1),
 clf;
-iters = 500;
+iters = 599;
 % solution by CBCD with block size 1
 [x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
-plot(1:iters,y1);
+plot(1:iters+1,y1);
 hold on;
 % solution by RBCD with block size 1
 [x2,y2] = RBCD_size1(A, b, d, lower, upper, iters);
-plot(1:iters,y2,'r');
+plot(1:iters+1,y2,'r');
 hold on;
 % solution by CBCDmex with block size 1
 [x3, y3] = CBCD_size1_mex(A, b, d, lower, upper, iters);
-plot(1:iters,y3,'g--');
+plot(1:iters+1,y3,'g--');
 hold on;
 % solution by CBCDmex with block size 1
 [x4, y4] = RBCD_size1_mex(A, b, d, lower, upper, iters);
-plot(1:iters,y4,'c--');
+plot(1:iters+1,y4,'c--');
 hold on;
 % legend
-legend('G-S','CBCD','RBCD','CBCD mex');
+legend('CBCD','RBCD','CBCD mex','RBCD mex');
+xlabel('#iter');ylabel('Function value');
 % evaluation
 diff1 = norm(x - x1,2);
