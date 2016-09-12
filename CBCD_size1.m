@@ -14,15 +14,32 @@ function [x,y] = CBCD_size1(A, b, d, lower, upper, max_iter)
 x = lower;
 y = zeros(max_iter+1,1);
 y(1) = fval(A,b,x);
-residual = zeros(max_iter,1);
 L = diag(A); % for quadratic functions the Lipschitz constant is A_ii
-for k=1:max_iter
-    i = mod(k-1,d)+1;
-    x(i) = x(i) - (A(i,:)*x-b(i))/L(i);
-    x(i) = max(lower(i),min(upper(i),x(i)));% bounds
-    residual(k) = norm(A*x-b,2);
-    y(k+1) = fval(A,b,x);
-    fprintf('iter;%5d, residual:%.8f, fval:%.8f\n',k,residual(k),y(k));
+% for computing residual, based on the normal cone
+residual = zeros(max_iter,1);
+index_0 = find(x==0);
+index_1 = find(x==1);
+res_vec = -A*x+b;
+res_vec(index_0) = min(0,A(index_0,:)*x+b(index_0));
+res_vec(index_1) = max(0,A(index_1,:)*x+b(index_1));
+residual(1) = norm(res_vec,2);
+fprintf('epoch;    0, residual:%.15f, fval:%.8f\n',residual(1),y(1));
+epoch = 1;
+while residual(epoch)~=0 && epoch<=max_iter
+    for i=1:d
+        x(i) = x(i) - (A(i,:)*x-b(i))/L(i);
+        x(i) = max(lower(i),min(upper(i),x(i)));% bounds
+    end
+    % opt condition, 0 in sub gradient
+    index_0 = find(x==0);
+    index_1 = find(x==1);
+    res_vec = -A*x+b;
+    res_vec(index_0) = min(0,A(index_0,:)*x-b(index_0));
+    res_vec(index_1) = max(0,A(index_1,:)*x-b(index_1));
+    residual(epoch+1) = norm(res_vec,2);
+    y(epoch+1) = fval(A,b,x);
+    fprintf('epoch;%5d, residual:%.15f, fval:%.8f\n',epoch,residual(epoch+1),y(epoch+1));
+    epoch = epoch+1;
 end
 
 end

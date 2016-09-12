@@ -29,6 +29,7 @@ static unsigned int STATE[R];
 static unsigned int z0, z1, z2;
 /* WELL def part end*/
 double fval_mex(double *A,double *b,int d,double *x);//function value
+double residual_mex(double *A,double *b,int d,double *x);//residual
 void InitWELLRNG512a (unsigned int *init);//WELL
 double WELLRNG512a (void);//WELL
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -44,7 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    double *out_x;// the minimizer
    double *out_y;// function value of each iter
    //parameters in the function
-   int i,j,k;//loop
+   int i,j,k,epoch;//loop
    int lower_index,upper_index;//search random index in L_sum
    double Aix,residual,L_random;//matrix calc,residual,random L
    double *L_sum;
@@ -84,55 +85,54 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    for (i=0;i<=in_d;i++){
        L_sum[i] = L_sum[i]/L_sum[in_d];
    }
-   mexPrintf("L_sum:%.4f,",L_sum[0]);
+   /*mexPrintf("L_sum:%.4f,",L_sum[0]);
    for (i=1;i<in_d-1;i++){
        mexPrintf("  %.4f,",L_sum[i]);
    }
-   mexPrintf("  %.4f\n",L_sum[in_d]);
-   for (k=0;k<in_max_iter;k++){
-       //get random number in [0,1]
-       L_random = WELLRNG512a();
-       // get corresponding i
-       lower_index = 0;
-       upper_index = in_d;
-       while(upper_index-lower_index>1){
-           i = floor((upper_index+lower_index)/2);
-           if (L_random>L_sum[i]){
-               lower_index = i;
+   mexPrintf("  %.4f\n",L_sum[in_d]);*/
+   // residual of init
+   residual = residual_mex(in_A, in_b, in_d, out_x);
+   mexPrintf("epoch:    0, residual=%.15f, fval:%.8f\n",residual,out_y[0]);
+   epoch=1;
+   while ((residual!=0)&&(epoch<=in_max_iter)){
+       for (k=0;k<in_d;k++){// one epoch
+           //get random number in [0,1]
+           L_random = WELLRNG512a();
+           // get corresponding i
+           lower_index = 0;
+           upper_index = in_d;
+           while(upper_index-lower_index>1){
+               i = floor((upper_index+lower_index)/2);
+               if (L_random>L_sum[i]){
+                   lower_index = i;
+               }
+               if (L_random<=L_sum[i]){
+                   upper_index = i;
+               }
            }
-           if (L_random<=L_sum[i]){
-               upper_index = i;
-           }
-       }
-       i = lower_index;
-       mexPrintf("i:%d\n",i);
-       //calc vector A(i,:)*x
-       Aix = 0;
-       for (j=0;j<in_d;j++){
-           Aix = Aix + in_A[i*in_d + j]*out_x[j];
-           //mexPrintf("iter:%5d, i=%5d, j=%5d, Aix=%.8f\n",k+1,i,j,Aix);
-       }
-       //descent
-       out_x[i] = out_x[i] - (Aix-in_b[i])/in_A[i*in_d + i];
-       //bounds
-       if (out_x[i]>in_upper[i]){
-           out_x[i] = in_upper[i];
-       }
-       if (out_x[i]<in_lower[i]){
-           out_x[i] = in_lower[i];
-       }
-       //residual
-       residual=0;
-       for (i=0;i<in_d;i++){
+           i = lower_index;
+           //mexPrintf("i:%d\n",i);//show i when debugging
+           //calc vector A(i,:)*x
            Aix = 0;
            for (j=0;j<in_d;j++){
                Aix = Aix + in_A[i*in_d + j]*out_x[j];
+               //mexPrintf("iter:%5d, i=%5d, j=%5d, Aix=%.8f\n",k+1,i,j,Aix);
            }
-           residual = residual + pow(Aix-in_b[i],2);
+           //descent
+           out_x[i] = out_x[i] - (Aix-in_b[i])/in_A[i*in_d + i];
+           //bounds
+           if (out_x[i]>in_upper[i]){
+               out_x[i] = in_upper[i];
+           }
+           if (out_x[i]<in_lower[i]){
+               out_x[i] = in_lower[i];
+           }
        }
-       residual = sqrt(residual);
-       out_y[k+1] = fval_mex(in_A, in_b, in_d, out_x);
-       //mexPrintf("iter:%5d, residual=%5d, fval:%.8f\n",k+1,i,out_y[k]);
+       //residual
+       residual = residual_mex(in_A,in_b,in_d,out_x);
+       out_y[epoch] = fval_mex(in_A, in_b, in_d, out_x);
+       mexPrintf("epoch:%5d, residual=%.15f, fval:%.8f\n",epoch,residual,out_y[epoch]);
+       epoch++;
    }
 }
 
@@ -149,6 +149,33 @@ double fval_mex(double *A,double *b,int d,double *x){
         y = y + (Aix/2-b[i]) * x[i];
     }
     return y;
+}
+double residual_mex(double *A,double *b,int d,double *x){
+    double r;//output residual, scalar
+    int i,j;
+    double df;
+    r = 0;
+    for (i=0;i<d;i++){
+        df = -b[i];
+        for (j=0;j<d;j++){
+            df = df + A[i*d + j]*x[j];
+        }
+        if (x[i]==0){
+            if (df<0){
+                r = r + df*df;
+            }
+        }
+        else if (x[i]==1){    
+            if (df>0){
+                r = r + df*df;
+            }
+        }
+        else {
+            r = r + df*df;
+        }
+    }
+    r = sqrt(r);
+    return r;
 }
 void InitWELLRNG512a (unsigned int *init){
    int j;
