@@ -1,5 +1,6 @@
 #include <math.h>
 #include "mex.h"
+#include <time.h>
 
 #define EPSILON 2.220446e-16
 double fval_mex(double *A,double *b,int d,double *x);
@@ -16,7 +17,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    int in_max_iter;
    //ouput args
    double *out_x;// the minimizer
-   double *out_y;// function value of each iter
    //parameters in the function
    int i,j,epoch;//loop
    double residual;
@@ -34,8 +34,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    for (i=0;i<in_d;i++){
        out_x[i] = 0;
    }
-   plhs[2] = mxCreateDoubleMatrix(in_max_iter+1,1,mxREAL);
-   out_y = mxGetPr(plhs[2]);
+   double *out_y = NULL;// function value of each iter
+   out_y = (double*)malloc(sizeof(double)*in_d);
    out_y[0] = fval_mex(in_A, in_b, in_d, out_x);
    for (i=1;i<=in_max_iter;i++){
        out_y[i] = 0;
@@ -51,12 +51,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    double b2[2];
    bool FLAG;
    double a21b1_a11,a12b2_a22,detA2;
+   clock_t time0,time1,time2,time3,time4;
    while ((residual>1E-13)&&(epoch<=in_max_iter)){
-       for (int i=0;i<in_d-1;i=i+2){
+       double dt1=0; double dt2=0; double dt3=0; double dt4=0;
+       for (i=0;i<in_d-1;i=i+2){
            //calc temporal grad
+           time0 = clock();
            for (j=0;j<in_d;j++){
                grad[j] = grad[j]-in_A[j*in_d+i]*out_x[i]-in_A[j*in_d+i+1]*out_x[i+1];
            }
+           time1 = clock();
            // update x(i)
            // define size 2 block
            A2[0][0]=in_A[i*in_d+i];     A2[0][1]=in_A[i*in_d+i+1];
@@ -65,10 +69,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            b2[1]   =in_b[i+1]-grad[i+1];
            // decission tree
            FLAG = false;
-           a21b1_a11 = A2[1][0]*b2[0]/A2[0][0];
-           a12b2_a22 = A2[0][1]*b2[1]/A2[1][1];
-           detA2 = A2[0][0]*A2[1][1]-A2[0][1]*A2[1][0];
            // first assume x2=0
+           time2 = clock();
            if (b2[0]<=0){ // case b2(i)<=0
                if (b2[1]<=0){   //case 1
                    out_x[i]=0;
@@ -110,6 +112,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                        }
                    }
                    else{
+                       a21b1_a11 = A2[1][0]*b2[0]/A2[0][0];
+                       detA2 = A2[0][0]*A2[1][1]-A2[0][1]*A2[1][0];
                        if (b2[1]>=a21b1_a11+detA2/A2[0][0]){  //case 8
                            out_x[i]=(b2[0]-A2[0][1])/A2[0][0];
                            out_x[i+1]=1;
@@ -120,12 +124,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            }
            // x2~=0 & x2~=1 x2 in (0,1)
            if (FLAG==false){
+               a12b2_a22 = A2[0][1]*b2[1]/A2[1][1];
                if (b2[0]<=a12b2_a22){  //case 4
                    out_x[i]=0;
                    out_x[i+1]=b2[1]/A2[1][1];
                    FLAG = true;//mexPrintf("case4\n");
                }
                else{
+                   detA2 = A2[0][0]*A2[1][1]-A2[0][1]*A2[1][0];
                    if (b2[0]>=a12b2_a22+detA2/A2[1][1]){  // case 6
                        out_x[i]=1;
                        out_x[i+1]=(b2[1]-A2[1][0])/A2[1][1];
@@ -139,10 +145,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                }
            }
            //update temporal grad
+           time3 = clock();
            for (j=0;j<in_d;j++){
                grad[j] = grad[j]+in_A[j*in_d+i]*out_x[i]+in_A[j*in_d+i+1]*out_x[i+1];
            }
+           time4 = clock();
+           dt1+=(double)(time1-time0)/((clock_t)1000);
+           dt2+=(double)(time2-time1)/((clock_t)1000);
+           dt3+=(double)(time3-time2)/((clock_t)1000);
+           dt4+=(double)(time4-time3)/((clock_t)1000);
        }
+       mexPrintf("dt1 = %.4f, dt2 = %.4f, dt3 = %.4f, dt4 = %.4f,\n",dt1,dt2,dt3,dt4);
        // if mod(in_d,2)==1
        if (in_d%2==1){
            i=in_d-1;
@@ -164,10 +177,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                grad[j] = grad[j] + in_A[j*in_d+i]*out_x[i];
            }
        }
+       time0=clock();
        grad = grad_mex(in_A,out_x,in_d,grad);
        //residual
+       time1=clock();dt2=(double)(time1-time0)/((clock_t)1000);
        residual = residual_mex(in_A,in_b,in_d,out_x,grad);
+       time2=clock();dt3=(double)(time2-time1)/((clock_t)1000);
        out_y[epoch] = fval_mex(in_A, in_b, in_d, out_x);
+       time3=clock();dt4=(double)(time3-time2)/((clock_t)1000);
+       mexPrintf("tgrad = %.4f, tres = %.4f, tfval = %.4f\n",dt2,dt3,dt4);
        mexPrintf("epoch:%5d, residual=%.15f, fval:%.15f\n",epoch,residual,out_y[epoch]);
        epoch++;
    }
@@ -176,7 +194,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    for (i=0;i<epoch;i++){
        y[i]=out_y[i];
    }
-   free(grad);
+   delete grad; delete out_y;
 }
 double fval_mex(double *A,double *b,int d,double *x){
     double y;//output function value, y in R^(iter*1)

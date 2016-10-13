@@ -3,12 +3,13 @@ function [x,y] = RBCD_size1(A, b, d, lower, upper, max_iter)
 % min 1/2<x,Ax>-<b,x>
 % s.t. x in R^d, lower(i)<=x(i)<=upper(i)
 % with block size 1
-% input: A: in R^d*d
-%        b: in R^d
-%        d: dimension
-%        lower, upper: bounds
-%        max_iter: max iteration
+% input:  A: in R^d*d
+%         b: in R^d
+%         d: dimension
+%         lower, upper: bounds
+%         max_iter: max iteration
 % output: solution x
+%         function value y in each epoch
 
 % init x and Lipschitz constant
 x = lower;
@@ -26,6 +27,9 @@ residual(1) = norm(res_vec,2);
 fprintf('epoch;    0, residual:%.15f, fval:%.8f\n',residual(1),y(1));
 epoch = 1;
 nL = L/sum(L);
+% set random seed
+stream = RandStream.getGlobalStream;
+reset(stream);
 while residual(epoch)~=0 && epoch<=max_iter
     for k=1:d
         % how t choose i
