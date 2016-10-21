@@ -17,7 +17,7 @@ y = zeros(max_iter+1,1);
 y(1) = fval(A,b,x);
 % for computing residual, based on the normal cone
 residual = ones(max_iter+1,1);
-%fprintf('epoch;    0, residual:%.15f, fval:%.15f\n',residual(1),y(1));
+fprintf('epoch;    0, residual:%.15f, fval:%.15f\n',residual(1),y(1));
 epoch = 1;
 grad = A*x;
 while residual(epoch)>1E-13 && epoch<=max_iter
@@ -147,22 +147,22 @@ while residual(epoch)>1E-13 && epoch<=max_iter
                 end
                 if flag==0
                     x13=[a11,a13;a31,a33]\[b1;b3];
-                    if x13(1)>=0 && x13(1)<=1 && x13(2)>=0 && x13(2)<=1 && a21*x1+a23*x3>=b2 % case11
+                    if x13(1)>=0 && x13(1)<=1 && x13(2)>=0 && x13(2)<=1 && a21*x13(1)+a23*x13(2)>=b2 % case11
                         x([i,i+1,i+2])=[x13(1);0;x13(2)];flag = 1;
                     end
                     if flag==0
                         x13=[a11,a13;a31,a33]\[b1-a12;b3-a32];
-                        if x13(1)>=0 && x13(1)<=1 && x13(2)>=0 && x13(2)<=1 && a21*x1+a22+a23*x3<=b2 % case17
+                        if x13(1)>=0 && x13(1)<=1 && x13(2)>=0 && x13(2)<=1 && a21*x13(1)+a22+a23*x13(2)<=b2 % case17
                             x([i,i+1,i+2])=[x13(1);1;x13(2)];flag = 1;
                         end
                         if flag==0
                             x12=[a11,a12;a21,a22]\[b1;b2];
-                            if x12(1)>=0 && x12(1)<=1 && x12(2)>=0 && x12(2)<=1 && a31*x1+a32*x2>=b3 % case13
+                            if x12(1)>=0 && x12(1)<=1 && x12(2)>=0 && x12(2)<=1 && a31*x12(1)+a32*x12(2)>=b3 % case13
                                 x([i,i+1,i+2])=[x12;0];flag = 1;
                             end
                             if flag==0
                                 x12=[a11,a12;a21,a22]\[b1-a13;b2-a23];
-                                if x12(1)>=0 && x12(1)<=1 && x12(2)>=0 && x12(2)<=1 && a31*x1+a32*x2+a33<=b3 % case15
+                                if x12(1)>=0 && x12(1)<=1 && x12(2)>=0 && x12(2)<=1 && a31*x12(1)+a32*x12(2)+a33<=b3 % case15
                                     x([i,i+1,i+2])=[x12;1];flag = 1;
                                 end
                             end
@@ -213,10 +213,10 @@ while residual(epoch)>1E-13 && epoch<=max_iter
     index_u = find(x>=upper-2*eps);
     index = find(x>lower+2*eps & x<upper-2*eps);
     residual(epoch+1) = norm([grad(index)-b(index);min(0,grad(index_l)-b(index_l));max(0,grad(index_u)-b(index_u))],2);
-%     y(epoch+1) = fval(A,b,x);
-%     if(rem(epoch,1)==0)
-%         fprintf('epoch;%5d, residual:%.15f, fval:%.15f\n',epoch,residual(epoch+1),y(epoch+1));
-%     end
+    y(epoch+1) = fval(A,b,x);
+    if(rem(epoch,1)==0)
+        fprintf('epoch;%5d, residual:%.15f, fval:%.15f\n',epoch,residual(epoch+1),y(epoch+1));
+    end
     epoch = epoch+1;
 end
 y(epoch+1:end)=[];

@@ -58,7 +58,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            //calc temporal grad
            time0 = clock();
            for (j=0;j<in_d;j++){
-               grad[j] = grad[j]-in_A[j*in_d+i]*out_x[i]-in_A[j*in_d+i+1]*out_x[i+1];
+               grad[j] = grad[j]-in_A[i*in_d+j]*out_x[i]-in_A[(i+1)*in_d+j]*out_x[i+1];
            }
            time1 = clock();
            // update x(i)
@@ -147,7 +147,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            //update temporal grad
            time3 = clock();
            for (j=0;j<in_d;j++){
-               grad[j] = grad[j]+in_A[j*in_d+i]*out_x[i]+in_A[j*in_d+i+1]*out_x[i+1];
+               grad[j] = grad[j]+in_A[i*in_d+j]*out_x[i]+in_A[(i+1)*in_d+j]*out_x[i+1];
            }
            time4 = clock();
            dt1+=(double)(time1-time0)/((clock_t)1000);
@@ -161,7 +161,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            i=in_d-1;
            //calc temporal grad
            for (j=0;j<in_d;j++){
-               grad[j] = grad[j] - in_A[j*in_d+i]*out_x[i];
+               grad[j] = grad[j] - in_A[i*in_d+j]*out_x[i];
            }
            //descent
            out_x[i] = (in_b[i]-grad[i])/in_A[i*in_d + i];
@@ -174,7 +174,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
            }
            //update temporal grad
            for (j=0;j<in_d;j++){
-               grad[j] = grad[j] + in_A[j*in_d+i]*out_x[i];
+               grad[j] = grad[j] + in_A[i*in_d+j]*out_x[i];
            }
        }
        time0=clock();

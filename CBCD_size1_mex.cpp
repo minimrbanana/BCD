@@ -8,12 +8,12 @@ double residual_mex(double *A,double *b,int d,double *x,double *grad);
 double *grad_mex(double *A,double *x,int d, double *grad);
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    //input args
+   //input args
+   //here the lower and upper bounds are set in the program
+   //not set by the input parameters
    double *in_A;
    double *in_b;
    int in_d;
-   double *in_lower;
-   double *in_upper;
    int in_max_iter;
    //ouput args
    double *out_x;// the minimizer
@@ -24,66 +24,59 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
    in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
    in_d = mxGetScalar(prhs[2]);if(in_d==NULL){mexErrMsgTxt("pointer in_d is null");  return;}
-   in_lower = mxGetPr(prhs[3]);if(in_lower==NULL){mexErrMsgTxt("pointer in_lower is null");  return;}
-   in_upper = mxGetPr(prhs[4]);if(in_upper==NULL){mexErrMsgTxt("pointer in_upper is null");  return;}
-   in_max_iter = mxGetScalar(prhs[5]);if(in_max_iter==NULL){mexErrMsgTxt("pointer in_max_iter is null");  return;}
-   mexPrintf("input args get\n");
+   in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("pointer in_max_iter is null");  return;}
+   mexPrintf("CBCD size 1...input args get\n");
    //allocate output, and init as all 0s
    plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
-   out_x = mxGetPr(plhs[0]);if(out_x==NULL) { mexErrMsgTxt("pointer out_x is null");  return;}
+   out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} else{mexPrintf("pointer out_x created\n");} 
    for (i=0;i<in_d;i++){
        out_x[i] = 0;
    }
-   double *out_y=NULL;// function value of each iter
-   out_y = (double*)malloc(sizeof(double)*in_max_iter);
-   out_y[0] = fval_mex(in_A, in_b, in_d, out_x);
-   for (i=1;i<=in_max_iter;i++){
-       out_y[i] = 0;
-   }
-   // residual of init
-   double *grad=NULL;
-   grad = (double*)malloc(sizeof(double)*in_d);
-   if(grad==NULL) { mexErrMsgTxt("pointer grad is null");  return;}
+   //pre-allocate output of residual, length as max_iter
+   double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} else{mexPrintf("pointer out_r created\n");} 
+   //allocate gradient, will delete later
+   double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} else{mexPrintf("pointer grad created\n");} 
+   //grad and residual of init
    grad = grad_mex(in_A,out_x,in_d,grad);
    residual = residual_mex(in_A, in_b, in_d, out_x, grad);
-   mexPrintf("epoch:    0, residual=%.15f, fval:%.15f\n",residual,out_y[0]);
+   out_r[0] = residual;
+   mexPrintf("init:     0, residual=%.15f\n",residual);
    epoch=1;
    while ((residual>1E-13)&&(epoch<=in_max_iter)){
        for (i=0;i<in_d;i++){
-           xtemp = out_x[i];
            //calc temporal grad
            for (j=0;j<in_d;j++){
-               grad[j] -= in_A[i*in_d+j]*xtemp;
+               grad[j] -= in_A[i*in_d+j]*out_x[i];
            }
            //descent
-           xtemp = (in_b[i]-grad[i])/in_A[i*in_d + i];
+           out_x[i] = (in_b[i]-grad[i])/in_A[i*in_d + i];
            //bounds
-           if (xtemp>in_upper[i]){
-               xtemp = in_upper[i];
+           if (out_x[i]>1){
+               out_x[i] = 1;
            }
-           else if (xtemp<in_lower[i]){
-               xtemp = in_lower[i];
+           else if (out_x[i]<0){
+               out_x[i] = 0;
            }
-           out_x[i] = xtemp;
            //update temporal grad
            for (j=0;j<in_d;j++){
-               grad[j] += in_A[i*in_d+j]*xtemp;
+               grad[j] += in_A[i*in_d+j]*out_x[i];
            }
        }
+       //update true gradient
        grad = grad_mex(in_A,out_x,in_d,grad);
        //residual
        residual = residual_mex(in_A,in_b,in_d,out_x,grad);
-       //out_y[epoch] = fval_mex(in_A, in_b, in_d, out_x);
-       
-       mexPrintf("epoch:%5d, residual=%.15f, fval=%.15f\n",epoch,residual,out_y[epoch]);
+       out_r[epoch] = residual;
+       mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
        epoch++;
    }
    plhs[1] = mxCreateDoubleMatrix(epoch,1,mxREAL);
-   double* y = mxGetPr(plhs[1]);
+   double* r = mxGetPr(plhs[1]);if(r==NULL){mexErrMsgTxt("pointer r is null");  return;}
    for (i=0;i<epoch;i++){
-       y[i]=out_y[i];
+       r[i]=out_r[i];
    }
-   delete grad; delete out_y;
+   delete grad; delete out_r;
+   mexPrintf("End of CBCD size 1\n");
 }
 double fval_mex(double *A,double *b,int d,double *x){
     double y;//output function value, y in R^(iter*1)
