@@ -3,10 +3,14 @@ function [xcur, ycur, epoch] = PDAL(A, b)
 % 'Malitsky, Pock - A first-order primal-dual algorithm with
 % linesearch(2016)'
 % implementation of algorithm 3
+% solves 1/2(x,A'*A*x)-A'*b*x
+% to compare, the input of corresponding CBCD functions 
+% should be A'*A and A'*b
 % input          A, b 
 % output         x*, y(fval)
 %%
 % init
+disp('To compare, the input of corresponding CBCD functions should be A^T*A and A^T*b');
 dim  = size(A,1);
 xcur = zeros(dim,1);
 ycur = A*xcur-b;
@@ -50,12 +54,13 @@ while residual>1E-12 && epoch<=1000
         %fprintf('break_line = %.8f\n',break_line);
         count=count+1;
     end
+    % show residual
     grad = A2*xcur;
     index_l = find(xcur<=0+2*eps);
     index_u = find(xcur>=1-2*eps);
     index = find(xcur>0+2*eps & xcur<1-2*eps);
     residual = norm([grad(index)-b2(index);min(0,grad(index_l)-b2(index_l));max(0,grad(index_u)-b2(index_u))],2);
-    yout = fval(A2,b2,xcur);
+    %yout = fval(A2,b2,xcur);
     %fprintf('epoch;%5d, residual:%.15f, fval:%.15f\n',epoch,residual,yout);
     epoch = epoch+1;
 end

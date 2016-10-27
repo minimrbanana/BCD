@@ -28,14 +28,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    mexPrintf("CBCD size 2...input args get\n");
    //allocate output, and init as all 0s
    plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
-   out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} else{mexPrintf("pointer out_x created\n");} 
+   out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
    for (i=0;i<in_d;i++){
        out_x[i] = 0;
    }
    //pre-allocate output of residual, length as max_iter
-   double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} else{mexPrintf("pointer out_r created\n");} 
+   double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} 
    //allocate gradient, will delete later
-   double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} else{mexPrintf("pointer grad created\n");} 
+   double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
    //grad and residual of init
    grad = grad_mex(in_A,out_x,in_d,grad);
    residual = residual_mex(in_A, in_b, in_d, out_x, grad);
@@ -47,17 +47,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    double b1,b2;
    bool FLAG;
    double a21b1_a11,a12b2_a22,detA2;
-   //clock_t time0,time1,time2,time3,time4;
-   //double dt1=0; double dt2=0; double dt3=0; double dt4=0;
+   clock_t time0,time1,time2,time3,time4;////////time//////////
+   double dt1=0; double dt2=0; double dt3=0; double dt4=0;////////time//////////
    while ((residual>1E-13)&&(epoch<=in_max_iter)){
-       //dt1=0;dt2=0;dt3=0;dt4=0;
+       //dt1=0;dt2=0;dt3=0;dt4=0;////////time//////////
        for (i=0;i<in_d-1;i=i+2){
            //calc temporal grad
-           //time0 = clock();
+           time0 = clock();////////time//////////
            for (j=0;j<in_d;j++){
                grad[j] = grad[j]-in_A[i*in_d+j]*out_x[i]-in_A[(i+1)*in_d+j]*out_x[i+1];
            }
-           //time1 = clock();
+           time1 = clock();////////time//////////
            // update x(i)
            // define size 2 block
            a11=in_A[i*in_d+i  ];     a12=in_A[(i+1)*in_d+i  ];
@@ -117,18 +117,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                    out_x[i+1]=(a11*b2-a21*b1)/detA2;
                    FLAG = true;
            }
-           //time2 = clock();
+           time2 = clock();////////time//////////
            //update temporal grad
            for (j=0;j<in_d;j++){
                grad[j] = grad[j]+in_A[i*in_d+j]*out_x[i]+in_A[(i+1)*in_d+j]*out_x[i+1];
            }
-           //time3 = clock();
-           //dt1+=(double)(time1-time0)/(CLOCKS_PER_SEC);
-           //dt2+=(double)(time2-time1)/(CLOCKS_PER_SEC);
-           //dt3+=(double)(time3-time2)/(CLOCKS_PER_SEC);
+           time3 = clock();////////time//////////
+           dt1+=(double)(time1-time0);
+           dt2+=(double)(time2-time1);
+           dt3+=(double)(time3-time2);///(CLOCKS_PER_SEC);
+           dt4+=(double)(time3-time0);
        }
-       //mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f,\n",dt1,dt2,dt3,dt4);
-       // if mod(in_d,2)==1
        if (in_d%2==1){
            i=in_d-1;
            //calc temporal grad
@@ -149,15 +148,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                grad[j] = grad[j] + in_A[i*in_d+j]*out_x[i];
            }
        }
-       //time0=clock();
        //update true gradient
        grad = grad_mex(in_A,out_x,in_d,grad);
        //residual
        residual = residual_mex(in_A,in_b,in_d,out_x,grad);
        out_r[epoch] = residual;
-       //time1=clock();dt1=(double)(time1-time0)/(CLOCKS_PER_SEC);
-       //mexPrintf("telse = %.5f\n",dt1);
-       mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
+       if (epoch%5==1){
+           mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
+       }
        epoch++;
    }
    plhs[1] = mxCreateDoubleMatrix(epoch,1,mxREAL);
@@ -166,7 +164,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
        r[i]=out_r[i];
    }
    delete grad; delete out_r;
+   mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
    mexPrintf("End of CBCD size 2\n");
+   
 }
 double fval_mex(double *A,double *b,int d,double *x){
     double y;//output function value, y in R^(iter*1)

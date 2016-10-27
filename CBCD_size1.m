@@ -1,4 +1,4 @@
-function [x,y,epoch] = CBCD_size1(A, b, dim, lower, upper, max_iter)
+function [x,y] = CBCD_size1(A, b, dim, lower, upper, max_iter)
 % Cyclic Block Coordinate Descent method to solve
 % min 1/2<x,Ax>-<b,x>
 % s.t. x in R^d, lower(i)<=x(i)<=upper(i)
