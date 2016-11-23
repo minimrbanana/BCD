@@ -9,20 +9,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     //here the lower and upper bounds are set in the program
     //not set by the input parameters
     double *in_A;
+    mwIndex *irs;// for sparse matrix
+    mwIndex *jcs;// for sparse matrix
     double *in_b;
     int in_d;
     int in_max_iter;
     //ouput args
     double *out_x;// the minimizer
     //parameters in the function
-    int i,j,epoch,iid;//loop
+    int i,j,epoch;//loop
     double residual, df;
     //get input args
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
+    irs = mxGetIr(prhs[0]);if(irs==NULL){mexErrMsgTxt("pointer irs is null");  return;}
+    jcs = mxGetJc(prhs[0]);if(jcs==NULL){mexErrMsgTxt("pointer jcs is null");  return;}
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
     in_d = mxGetScalar(prhs[2]);if(in_d==NULL){mexErrMsgTxt("pointer in_d is null");  return;}
     in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("pointer in_max_iter is null");  return;}
-    mexPrintf("CBCD size 1.cpp...input args get\n");
+    /* Non-Zero elements, is the value of last entry of jcs
+     * lengths of in_A and irs are both NZmax
+     * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
+    */
+    int NZmax = jcs[in_d];
+    mexPrintf("CBCD size 1.cpp...NZmax = %d.\n",NZmax);
     //allocate output, and init as all 0s
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
@@ -33,18 +42,29 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} 
     //allocate gradient, will delete later
     double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
-    //grad and residual of init in one loop
-    //out_x is initialized as all 0s, so grad is 0 vector
-    //residual calculation is simplified
+    //allotace diagonal, for solving small block problem
+    double* diag_A=new double[in_d];  if(diag_A==NULL){mexErrMsgTxt("pointer diag_A is null");  return;} 
+    /*grad and residual of init in one loop
+     *out_x is initialized as all 0s, so grad is 0 vector
+     *residual calculation is simplified
+     *in the loop the elements from the diagonal are also extracted
+    */
     residual = 0;
     for (i=0;i<in_d;i++){
         //for initial x=0, g[i]=0
         grad[i]=0;
-        ////iid=i*in_d;
-        // i th residual
+        //i th residual
         df = -in_b[i];
         if (df<0){
             residual += df*df;
+        }
+        //i th diag_A[]
+        diag_A[i]=0;
+        for (j=jcs[i];j<jcs[i+1];j++){
+            if (irs[j]==i){
+                diag_A[i]=in_A[j];
+                //mexPrintf("diag_A[%d]=%.5f;\n",i,in_A[j]);
+            }
         }
     }
     residual = sqrt(residual);
@@ -53,14 +73,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     epoch=1;
     while ((residual>1E-13)&&(epoch<=in_max_iter)){
         for (i=0;i<in_d;i++){
-            //calc temporal grad
-            //use iid as temporal i*in_d
-            iid = i*in_d;
-            for (j=0;j<in_d;j++){
-                grad[j] -= in_A[iid+j]*out_x[i];
+            /*calc temporal grad
+             *Since A is symmetric, A(i,:)*x(i) can be 
+             *replaced by A(:,i)*x(i)
+            */
+            for (j=jcs[i];j<jcs[i+1];j++){
+                grad[irs[j]] -= in_A[j]*out_x[i];
             }
             //descent
-            out_x[i] = (in_b[i]-grad[i])/in_A[iid + i];
+            out_x[i] = (in_b[i]-grad[i])/diag_A[i];
             //bounds
             if (out_x[i]>1){
                 out_x[i] = 1;
@@ -69,19 +90,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 out_x[i] = 0;
             }
             //update temporal grad
-            for (j=0;j<in_d;j++){
-                grad[j] += in_A[iid+j]*out_x[i];
+            for (j=jcs[i];j<jcs[i+1];j++){
+                grad[irs[j]] += in_A[j]*out_x[i];
             }
         }
-        //update true gradient and residual in one loop
-        residual = 0;
+        //init gradient as 0s
         for (i=0;i<in_d;i++){
             grad[i]=0;
-            iid=i*in_d;
-            // i th gradient
-            for (int j=0;j<in_d;j++){
-                grad[i] += in_A[iid + j]*out_x[j];
+        }
+        //update true gradient
+        for (j=0;j<in_d;j++){
+            for (i=jcs[j];i<jcs[j+1];i++){
+                grad[irs[i]] += in_A[i]*out_x[j];
             }
+        }
+        //get the residual
+        residual = 0;
+        for (i=0;i<in_d;i++){
             // i th residual
             df = grad[i]-in_b[i];
             if (out_x[i]<=0+2*EPSILON){
@@ -108,6 +133,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<epoch;i++){
         r[i]=out_r[i];
     }
-    delete grad; delete out_r;
+    delete grad; delete out_r; delete diag_A;
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of CBCD size 1.cpp\n",epoch-1,residual);
 }
