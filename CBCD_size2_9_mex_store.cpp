@@ -247,7 +247,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    for (i=0;i<epoch;i++){
        r[i]=out_r[i];
    }
-   delete grad; delete out_r;
+   delete grad; delete out_r;delete labels;
    mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
    mexPrintf("End of CBCD size 2\n");
    

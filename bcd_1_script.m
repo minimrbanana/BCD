@@ -2,7 +2,7 @@
 
 %% input
 % dimension and constraints
-d = 100;
+d = 5000;
 lower = zeros(d,1);
 upper = ones(d,1);
 % A and b
@@ -10,12 +10,17 @@ upper = ones(d,1);
 %[U,~,~] = svd(rand(d,d));
 %A = U' * D * U;
 % A and B dense
+
 %A = rand(d,d);
 %A = A*A';
+
 % A and B sparse
-diag_A1=ones(1,d-1);
-A = diag(ones(1,d)*5)+diag(diag_A1,1)+diag(diag_A1',-1);
+%diag_A1=ones(1,d-1);
+%A = diag(ones(1,d)*5)+diag(diag_A1,1)+diag(diag_A1',-1);
 %A = sparse(A);
+
+A = sprandsym(d,0.09,0.5,1);
+A = full(A);
 b = randn(d,1);
 
 %% solution by dense implementation
@@ -25,7 +30,7 @@ y1=0;y2=0;y3=0;y4=0;y5=0;y6=0;y7=0;y8=0;
 % omitted
 iters = 200;
 % solution by CBCD with block size 1
-[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
+%[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
 
 %[x10,counter] = CoordDescentQPBox(A,b,lower, upper,lower);
 % solution by RBCD with block size 1
@@ -47,7 +52,7 @@ iters = 200;
 %[x70,y70] = CBCD_size2_9_mex_store(A, b, d, iters);
 %[x7,y7] = CBCD_size2_9_mex(A, b, d, iters);
 % solution by CBCD with block size 3
-[x8, y8] = CBCD_size3(A, b, d, lower, upper, iters);
+%[x8, y8] = CBCD_size3(A, b, d, lower, upper, iters);
 
 %[x90,y90]  = CBCD_size3_mex_27_store(A, b, d, iters);
 %[x9,y9]  = CBCD_size3_mex_27(A, b, d, iters);
@@ -57,6 +62,8 @@ A = sparse(A);
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
 [x2sp, y2sp] = CBCD_size2_9_mex_sparse(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_mex_27_sparse(A, b, d, iters);
+[x2ss, y2ss] = CBCD_size2_ss(A, b, d, iters);
+[x3ss, y3ss] = CBCD_size3_ss(A, b, d, iters);
 %% plot 
 p = min([y1;y2;y3;y4;y5;y6;y7;y8]);
 %figure(1),
