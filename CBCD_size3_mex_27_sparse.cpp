@@ -91,12 +91,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double a11,a12,a13,a21,a22,a23,a31,a32,a33;
     double b1,b2,b3,x1,x2,x3,detA;
     bool FLAG;
-    clock_t time0,time1,time2,time3,time4;////////time//////////
-    double dt1=0; double dt2=0; double dt3=0; double dt4=0;////////time//////////
+    //clock_t time0,time1,time2,time3,time4;////////time//////////
+    //double dt1=0; double dt2=0; double dt3=0; double dt4=0;////////time//////////
     while ((residual>1E-13)&&(epoch<=in_max_iter)){
         for (i=0;i<in_d-2;i=i+3){
             //calc temporal grad
-            time0 = clock();////////time//////////
+            //time0 = clock();////////time//////////
             // three for loops to reuse current memory
             for (j=jcs[i];j<jcs[i+1];j++){
                 grad[irs[j]] -= in_A[j]*out_x[i];
@@ -107,7 +107,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             for (j=jcs[i+2];j<jcs[i+3];j++){
                 grad[irs[j]] -= in_A[j]*out_x[i+2];
             }
-            time1 = clock();////////time//////////
+            //time1 = clock();////////time//////////
             // update x(i)
             // define size 3 block
             a11=diag_A0[i  ]; a12=diag_A1[i  ]; a13=diag_A2[i  ];
@@ -360,7 +360,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 }
             }
             //update temporal grad
-            time2 = clock();////////time//////////
+            //time2 = clock();////////time//////////
             for (j=jcs[i];j<jcs[i+1];j++){
                 grad[irs[j]] += in_A[j]*out_x[i];
             }
@@ -370,11 +370,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             for (j=jcs[i+2];j<jcs[i+3];j++){
                 grad[irs[j]] += in_A[j]*out_x[i+2];
             }
-            time3 = clock();
+            /*time3 = clock();
             dt1+=(double)(time1-time0);///((clock_t)1000);
             dt2+=(double)(time2-time1);
             dt3+=(double)(time3-time2);
-            dt4+=(double)(time3-time0);
+            dt4+=(double)(time3-time0);*/
         }
         if (in_d%3==1){
             i=in_d-1;
@@ -474,6 +474,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         r[i]=out_r[i];
     }
     delete grad; delete out_r; delete diag_A0; delete diag_A1; delete diag_A2;
-    mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
+    //mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of CBCD size 3.cpp\n",epoch-1,residual);
 }
