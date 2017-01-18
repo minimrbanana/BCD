@@ -12,9 +12,29 @@ else if nargin == 1
 end
 
 % A tri-diagonal
-diag_A1=ones(1,d-1);
-A = eye(d)*2-diag(diag_A1,1)-diag(diag_A1',-1);
-A(1,d)=-1;A(d,1)=-1;
+% in sparse coding
+e = ones(d,1);
+A = spdiags([-e,-e,2*e,-e,-e],[-d+1 -1 0 1 d-1],d,d);
+
+
+% A laplacian of grid
+% matrix D
+% n=sqrt(d);
+% D = ones(n,n)*4;
+% D(1,:)=D(1,:)-1;
+% D(n,:)=D(n,:)-1;
+% D(:,1)=D(:,1)-1;
+% D(:,n)=D(:,n)-1;
+% D = reshape(D',n*n,1);
+% D = diag(D);
+% % matrix A
+% A = ones(n,n);
+% A(:,n)=0;
+% A = reshape(A',n*n,1);
+% A = diag(A(1:end-1),1)+diag(A(1:end-1),-1)+ ...
+%     diag(ones(n*(n-1),1),-n)+diag(ones(n*(n-1),1),n);
+% 
+% A=D-A;
 % b Gaussian dist.
 b = randn(d,1);
 
