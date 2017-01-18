@@ -1,4 +1,4 @@
-function p=time_evaluation(d,iters)
+function p=time_evaluation(d,iters,mode)
 % time test
 % input : d   dimension of the QP problem
 % outout: run time of functions
@@ -11,34 +11,43 @@ else if nargin == 1
     end
 end
 
-% A tri-diagonal
-% in sparse coding
-e = ones(d,1);
-A = spdiags([-e,-e,2*e,-e,-e],[-d+1 -1 0 1 d-1],d,d);
+switch mode
+    case 1
+        % A tri-diagonal
+        % in sparse coding
+        e = ones(d,1);
+        A = spdiags([-e,-e,2*e,-e,-e],[-d+1, -1, 0, 1, d-1],d,d);
+    
+    case 2
+        % A laplacian of grid
+        % matrix D
+        n=sqrt(d);
+        assert(n==round(n),'d is not a square number!');
+        D = ones(n,n)*4;
+        D(1,:)=D(1,:)-1;
+        D(n,:)=D(n,:)-1;
+        D(:,1)=D(:,1)-1;
+        D(:,n)=D(:,n)-1;
+        D = reshape(D',n*n,1);
+        % matrix A
+        A_below = ones(n,n);
+        A_above = ones(n,n);
+        A_below(:,n)=0;
+        A_above(:,1)=0;
+        A_below = reshape(A_below',n*n,1);
+        A_above = reshape(A_above',n*n,1);
+        A1 = ones(n*n,1);
+        A = spdiags([-A1,-A_below,D,-A_above,-A1],[-n,-1,0,1,n],d,d);
+    otherwise
+        % default tri-diagonal
+        e = ones(d,1);
+        A = spdiags([-e,-e,2*e,-e,-e],[-d+1, -1, 0, 1, d-1],d,d);
+end
 
-
-% A laplacian of grid
-% matrix D
-% n=sqrt(d);
-% D = ones(n,n)*4;
-% D(1,:)=D(1,:)-1;
-% D(n,:)=D(n,:)-1;
-% D(:,1)=D(:,1)-1;
-% D(:,n)=D(:,n)-1;
-% D = reshape(D',n*n,1);
-% D = diag(D);
-% % matrix A
-% A = ones(n,n);
-% A(:,n)=0;
-% A = reshape(A',n*n,1);
-% A = diag(A(1:end-1),1)+diag(A(1:end-1),-1)+ ...
-%     diag(ones(n*(n-1),1),-n)+diag(ones(n*(n-1),1),n);
-% 
-% A=D-A;
 % b Gaussian dist.
 b = randn(d,1);
 
-A = sparse(A);
+%A = sparse(A);
 profile on;
 % functions to evaluate
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
