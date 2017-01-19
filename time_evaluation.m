@@ -52,7 +52,9 @@ profile on;
 % functions to evaluate
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
 [x2sp, y2sp] = CBCD_size2_9_mex_sparse(A, b, d, iters);
+[x3sp, y3sp] = CBCD_size2_ss(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_mex_27_sparse(A, b, d, iters);
+[x3sp, y3sp] = CBCD_size3_ss(A, b, d, iters);
 p=profile('info');
 profile off;
 for i=1:size(p.FunctionTable,1)
