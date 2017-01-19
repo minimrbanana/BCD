@@ -52,14 +52,20 @@ profile on;
 % functions to evaluate
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
 [x2sp, y2sp] = CBCD_size2_9_mex_sparse(A, b, d, iters);
-[x3sp, y3sp] = CBCD_size2_ss(A, b, d, iters);
+[x2sp, y2sp] = CBCD_size2_ss(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_mex_27_sparse(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_ss(A, b, d, iters);
 p=profile('info');
 profile off;
-for i=1:size(p.FunctionTable,1)
-    fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-    fprintf('Runtime : %.4f seconds\n',p.FunctionTable(i,1).TotalTime);
+epochs = ones(5,1);
+epochs(1) = length(y1sp);epochs(2) = length(y2sp);epochs(3) = length(y2sp);
+epochs(4) = length(y3sp);epochs(5) = length(y3sp);
+if size(p.FunctionTable,1)==5
+    for i=1:size(p.FunctionTable,1)
+        fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+        fprintf('Runtime : %.4f seconds.   ',p.FunctionTable(i,1).TotalTime);
+        fprintf('T/epoch : %.4f seconds\n',p.FunctionTable(i,1).TotalTime/epochs(i));
+    end
 end
     
     
