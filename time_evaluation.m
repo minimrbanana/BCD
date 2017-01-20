@@ -1,7 +1,8 @@
-function T=time_evaluation(d,iters,mode)
+function [T, count]=time_evaluation(d,iters,mode)
 % time test
-% input : d   dimension of the QP problem
-% outout: run time of functions
+% input : d     dimension of the QP problem
+% outout: T     run time of functions(total and total/epoch)
+%         count flag whether it reaches max iters
 
 % set the default dim and max iterations
 if nargin == 0
@@ -58,6 +59,7 @@ profile off;
 epochs = ones(3,1);
 epochs(1) = length(y1sp);epochs(2) = length(y2sp);epochs(3) = length(y3sp);
 T = zeros(3,2);
+count=0;
 for i=1:size(p.FunctionTable,1)
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
@@ -65,6 +67,7 @@ for i=1:size(p.FunctionTable,1)
         T(1,2)= p.FunctionTable(i,1).TotalTime/epochs(1);
         fprintf('Runtime : %.4f seconds.   ',T(1,1));
         fprintf('T/epoch : %.4f seconds\n',T(1,2));
+        count=count+1;% inrease flag
     end
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_9_mex_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
@@ -72,6 +75,7 @@ for i=1:size(p.FunctionTable,1)
         T(2,2)= p.FunctionTable(i,1).TotalTime/epochs(2);
         fprintf('Runtime : %.4f seconds.   ',T(2,1));
         fprintf('T/epoch : %.4f seconds\n',T(2,2));
+        count=count+1;% inrease flag
     end
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_mex_27_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
@@ -79,7 +83,15 @@ for i=1:size(p.FunctionTable,1)
         T(3,2)= p.FunctionTable(i,1).TotalTime/epochs(3);
         fprintf('Runtime : %.4f seconds.   ',T(3,1));
         fprintf('T/epoch : %.4f seconds\n',T(3,2));
+        count=count+1;% inrease flag
     end
+end
+% if the flag is 3, it means time of all 3 functions is evaluated
+if count==3
+    count=1;
+else
+    count=0;
+    T = zeros(3,2);
 end
 
     
