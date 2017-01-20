@@ -1,4 +1,4 @@
-function p=time_evaluation(d,iters,mode)
+function T=time_evaluation(d,iters,mode)
 % time test
 % input : d   dimension of the QP problem
 % outout: run time of functions
@@ -44,7 +44,7 @@ switch mode
         A = spdiags([-e,-e,2*e,-e,-e],[-d+1, -1, 0, 1, d-1],d,d);
 end
 
-% b Gaussian dist.
+% b ~ Gaussian distribution.
 b = randn(d,1);
 
 %A = sparse(A);
@@ -52,21 +52,36 @@ profile on;
 % functions to evaluate
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
 [x2sp, y2sp] = CBCD_size2_9_mex_sparse(A, b, d, iters);
-[x2sp, y2sp] = CBCD_size2_ss(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_mex_27_sparse(A, b, d, iters);
-[x3sp, y3sp] = CBCD_size3_ss(A, b, d, iters);
 p=profile('info');
 profile off;
-epochs = ones(5,1);
-epochs(1) = length(y1sp);epochs(2) = length(y2sp);epochs(3) = length(y2sp);
-epochs(4) = length(y3sp);epochs(5) = length(y3sp);
-if size(p.FunctionTable,1)==5
-    for i=1:size(p.FunctionTable,1)
+epochs = ones(3,1);
+epochs(1) = length(y1sp);epochs(2) = length(y2sp);epochs(3) = length(y3sp);
+T = zeros(3,2);
+for i=1:size(p.FunctionTable,1)
+    if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-        fprintf('Runtime : %.4f seconds.   ',p.FunctionTable(i,1).TotalTime);
-        fprintf('T/epoch : %.4f seconds\n',p.FunctionTable(i,1).TotalTime/epochs(i));
+        T(1,1)= p.FunctionTable(i,1).TotalTime;
+        T(1,2)= p.FunctionTable(i,1).TotalTime/epochs(1);
+        fprintf('Runtime : %.4f seconds.   ',T(1,1));
+        fprintf('T/epoch : %.4f seconds\n',T(1,2));
+    end
+    if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_9_mex_sparse')
+        fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+        T(2,1)= p.FunctionTable(i,1).TotalTime;
+        T(2,2)= p.FunctionTable(i,1).TotalTime/epochs(2);
+        fprintf('Runtime : %.4f seconds.   ',T(2,1));
+        fprintf('T/epoch : %.4f seconds\n',T(2,2));
+    end
+    if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_mex_27_sparse')
+        fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+        T(3,1)= p.FunctionTable(i,1).TotalTime;
+        T(3,2)= p.FunctionTable(i,1).TotalTime/epochs(3);
+        fprintf('Runtime : %.4f seconds.   ',T(3,1));
+        fprintf('T/epoch : %.4f seconds\n',T(3,2));
     end
 end
+
     
     
     
