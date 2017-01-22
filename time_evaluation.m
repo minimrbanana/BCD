@@ -64,29 +64,36 @@ for i=1:size(p.FunctionTable,1)
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
         T(1,1)= p.FunctionTable(i,1).TotalTime;
-        T(1,2)= p.FunctionTable(i,1).TotalTime/epochs(1);
+        T(1,2)= epochs(1);
         fprintf('Runtime : %.4f seconds.   ',T(1,1));
-        fprintf('T/epoch : %.4f seconds\n',T(1,2));
-        count=count+1;% inrease flag
+        fprintf('#epochs : %d \n',T(1,2));
+        if epochs(1)~=iters
+            count=count+1;% inrease flag
+        end
     end
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_9_mex_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
         T(2,1)= p.FunctionTable(i,1).TotalTime;
-        T(2,2)= p.FunctionTable(i,1).TotalTime/epochs(2);
+        T(2,2)= epochs(2);
         fprintf('Runtime : %.4f seconds.   ',T(2,1));
-        fprintf('T/epoch : %.4f seconds\n',T(2,2));
-        count=count+1;% inrease flag
+        fprintf('#epochs : %d \n',T(2,2));
+        if epochs(2)~=iters
+            count=count+1;% inrease flag
+        end
     end
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_mex_27_sparse')
         fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
         T(3,1)= p.FunctionTable(i,1).TotalTime;
-        T(3,2)= p.FunctionTable(i,1).TotalTime/epochs(3);
+        T(3,2)= epochs(3);
         fprintf('Runtime : %.4f seconds.   ',T(3,1));
-        fprintf('T/epoch : %.4f seconds\n',T(3,2));
-        count=count+1;% inrease flag
+        fprintf('#epochs : %d \n',T(3,2));
+        if epochs(3)~=iters
+            count=count+1;% inrease flag
+        end
     end
 end
 % if the flag is 3, it means time of all 3 functions is evaluated
+% better add compare to max iter
 if count==3
     count=1;
 else
