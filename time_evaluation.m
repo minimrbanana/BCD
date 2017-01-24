@@ -39,6 +39,18 @@ switch mode
         A_above = reshape(A_above',n*n,1);
         A1 = ones(n*n,1);
         A = spdiags([-A1,-A_below,D,-A_above,-A1],[-n,-1,0,1,n],d,d);
+    case 3
+        % A squared tri-diagonal
+        % in sparse coding
+        e = ones(d,1);
+        A = spdiags([-e,-e,2*e,-e,-e],[-d+1, -1, 0, 1, d-1],d,d);
+        A = A*A;
+    case 4
+        % A cubic of tri-diagonal
+        % in sparse coding
+        e = ones(d,1);
+        A = spdiags([-e,-e,2*e,-e,-e],[-d+1, -1, 0, 1, d-1],d,d);
+        A = A*A*A;
     otherwise
         % default tri-diagonal
         e = ones(d,1);
