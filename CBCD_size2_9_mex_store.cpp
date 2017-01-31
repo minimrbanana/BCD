@@ -83,6 +83,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                        FLAG = 1;//mexPrintf("case1\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 2: {
                    if (b1>0 && b1<a11 && b2<=a21b1_a11){//case 2
@@ -91,6 +92,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 2;//mexPrintf("case2\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 3: {
                    if(b1>=a11 && b2<=a21){//case 3
@@ -99,6 +101,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 3;//mexPrintf("case3\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 4: {
                    if (b1<=a12b2_a22 && b2>0 && b2<a22){//case 4
@@ -107,14 +110,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 4;//mexPrintf("case4\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 5: {
                    out_x[i  ]=(a22*b1-a12*b2)/detA2;
                    out_x[i+1]=(a11*b2-a21*b1)/detA2;
                    if (out_x[i  ]>=0 && out_x[i  ]<=1 && out_x[i+1]>=0 && out_x[i+1]<=1){
-                        FLAG = 5;
+                        FLAG = 5;//mexPrintf("case5\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 6: {
                    if(b1>=a12b2_a22 + detA2/a22 && b2>a21 && b2<a21+a22){//case 6
@@ -123,6 +128,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 6;//mexPrintf("case6\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 7: {
                    if (b1<=a12 && b2>=a22){//case 7
@@ -131,6 +137,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 7;//mexPrintf("case7\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 8: {
                    if (b1>a12 && b1<a12+a11 && b2>=a21b1_a11+detA2/a11){//case 8
@@ -139,6 +146,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 8;//mexPrintf("case8\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
                case 9: {
                    if(b1>=a11+a12 && b2>=a21+a22){//case 9
@@ -147,6 +155,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG = 9;//mexPrintf("case9\n");
                    }
                    else {FLAG=0;}
+                   break;
                }
            }
            //if the last choice does not match this time, 9 cases again
@@ -155,49 +164,49 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                if (b1<=0 && b2<=0){//case 1
                        out_x[i]=0;
                        out_x[i+1]=0;
-                       FLAG = 1;//mexPrintf("case1\n");
+                       FLAG = 1;mexPrintf("Epoch %d,i=%d,case1\n",epoch,i);
                }
                else if (b1>0 && b1<a11 && b2<=a21b1_a11){//case 2
                        out_x[i]=b1/a11;
                        out_x[i+1]=0;
-                       FLAG = 2;//mexPrintf("case2\n");
+                       FLAG = 2;mexPrintf("Epoch %d,i=%d,case2\n",epoch,i);
                }
                else if(b1>=a11 && b2<=a21){//case 3
                        out_x[i]=1;
                        out_x[i+1]=0;
-                       FLAG = 3;//mexPrintf("case3\n");
+                       FLAG = 3;mexPrintf("Epoch %d,i=%d,case3\n",epoch,i);
                }
                // x2~=0, assume x2=1
                else if (b1<=a12b2_a22 && b2>0 && b2<a22){//case 4
                        out_x[i]=0;
                        out_x[i+1]=b2/a22;
-                       FLAG = 4;//mexPrintf("case4\n");
+                       FLAG = 4;mexPrintf("Epoch %d,i=%d,case4\n",epoch,i);
                }
                else if(b1>=a12b2_a22 + detA2/a22 && b2>a21 && b2<a21+a22){//case 6
                        out_x[i]=1;
                        out_x[i+1]=(b2-a21)/a22;
-                       FLAG = 6;//mexPrintf("case6\n");
+                       FLAG = 6;mexPrintf("Epoch %d,i=%d,case6\n",epoch,i);
                }
                // x2~=0 & x2~=1 x2 in (0,1)
                else if (b1<=a12 && b2>=a22){//case 7
                        out_x[i]=0;
                        out_x[i+1]=1;
-                       FLAG = 7;//mexPrintf("case7\n");
+                       FLAG = 7;mexPrintf("Epoch %d,i=%d,case7\n",epoch,i);
                }
                else if (b1>a12 && b1<a12+a11 && b2>=a21b1_a11+detA2/a11){//case 8
                        out_x[i]=(b1-a12)/a11;
                        out_x[i+1]=1;
-                       FLAG = 8;//mexPrintf("case8\n");
+                       FLAG = 8;mexPrintf("Epoch %d,i=%d,case8\n",epoch,i);
                }
                else if(b1>=a11+a12 && b2>=a21+a22){//case 9
                        out_x[i]=1;
                        out_x[i+1]=1;
-                       FLAG = 9;//mexPrintf("case9\n");
+                       FLAG = 9;mexPrintf("Epoch %d,i=%d,case9\n",epoch,i);
                }
                else{//case 5
                        out_x[i  ]=(a22*b1-a12*b2)/detA2;
                        out_x[i+1]=(a11*b2-a21*b1)/detA2;
-                       FLAG = 5;
+                       FLAG = 5;mexPrintf("Epoch %d,i=%d,case5\n",epoch,i);
                }
            }
            labels[i] = FLAG;

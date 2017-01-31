@@ -66,11 +66,14 @@ profile on;
 [x1sp, y1sp] = CBCD_size1_mex_sparse(A, b, d, iters);
 [x2sp, y2sp] = CBCD_size2_9_mex_sparse(A, b, d, iters);
 [x3sp, y3sp] = CBCD_size3_mex_27_sparse(A, b, d, iters);
+[x4sp, y4sp] = CBCD_size2_ss(A, b, d, iters);
+[x5sp, y5sp] = CBCD_size3_ss(A, b, d, iters);
 p=profile('info');
 profile off;
-epochs = ones(3,1);
+epochs = ones(5,1);
 epochs(1) = length(y1sp);epochs(2) = length(y2sp);epochs(3) = length(y3sp);
-T = zeros(3,2);
+epochs(4) = length(y4sp);epochs(5) = length(y5sp);
+T = zeros(5,2);
 count=0;
 for i=1:size(p.FunctionTable,1)
     if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
@@ -79,7 +82,7 @@ for i=1:size(p.FunctionTable,1)
         T(1,2)= epochs(1);
         fprintf('Runtime : %.4f seconds.   ',T(1,1));
         fprintf('#epochs : %d \n',T(1,2));
-        if epochs(1)~=iters
+        if epochs(1)~=iters+1
             count=count+1;% inrease flag
         end
     end
@@ -89,7 +92,7 @@ for i=1:size(p.FunctionTable,1)
         T(2,2)= epochs(2);
         fprintf('Runtime : %.4f seconds.   ',T(2,1));
         fprintf('#epochs : %d \n',T(2,2));
-        if epochs(2)~=iters
+        if epochs(2)~=iters+1
             count=count+1;% inrease flag
         end
     end
@@ -99,14 +102,34 @@ for i=1:size(p.FunctionTable,1)
         T(3,2)= epochs(3);
         fprintf('Runtime : %.4f seconds.   ',T(3,1));
         fprintf('#epochs : %d \n',T(3,2));
-        if epochs(3)~=iters
+        if epochs(3)~=iters+1
+            count=count+1;% inrease flag
+        end
+    end
+    if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_ss')
+        fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+        T(4,1)= p.FunctionTable(i,1).TotalTime;
+        T(4,2)= epochs(4);
+        fprintf('Runtime : %.4f seconds.   ',T(4,1));
+        fprintf('#epochs : %d \n',T(4,2));
+        if epochs(4)~=iters+1
+            count=count+1;% inrease flag
+        end
+    end
+    if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_ss')
+        fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+        T(5,1)= p.FunctionTable(i,1).TotalTime;
+        T(5,2)= epochs(5);
+        fprintf('Runtime : %.4f seconds.   ',T(5,1));
+        fprintf('#epochs : %d \n',T(5,2));
+        if epochs(5)~=iters+1
             count=count+1;% inrease flag
         end
     end
 end
 % if the flag is 3, it means time of all 3 functions is evaluated
 % better add compare to max iter
-if count==3
+if count==5
     count=1;
 else
     count=0;

@@ -134,6 +134,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=1;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 2: {
                     if (a13>=b1 && a23>=b2 && a33<=b3){
@@ -143,6 +144,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=2;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 3: {
                     if (a12>=b1 && a22<=b2 && a32>=b3){
@@ -152,6 +154,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=3;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 4: {
                     if (a12+a13>=b1 && a22+a23<=b2 && a32+a33<=b3){
@@ -161,6 +164,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=4;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 5: {
                     if (a11<=b1 && a12>=b2 && a13>=b3){
@@ -170,6 +174,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=5;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 6: {
                     if (a11+a13<=b1 && a21+a23>=b2 && a31+a33<=b3){
@@ -179,6 +184,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=6;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 7: {
                     if (a11+a12<=b1 && a21+a22<=b2 && a31+a32>=b3){
@@ -188,6 +194,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=7;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 8: {
                     if (a11+a12+a13<=b1 && a21+a22+a23<=b2 && a31+a32+a33<=b3){
@@ -197,6 +204,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=8;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 9: {
                     x3 = b3/a33;
@@ -207,6 +215,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                          FLAG=9;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 10: {
                      x2 = b2/a22;
@@ -217,6 +226,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=10;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 11: {
                     x1 = b1/a11;
@@ -227,6 +237,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=11;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 12: {
                     x1=(b1-a12-a13)/a11;
@@ -237,6 +248,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=12;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 13: {
                     x2=(b2-a21-a23)/a22;
@@ -247,6 +259,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=13;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 14: {
                     x3=(b3-a31-a32)/a33;
@@ -257,6 +270,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=14;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 15: {
                     x1=(b1-a13)/a11;
@@ -267,6 +281,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=15;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 16: {
                     x1 = (b1-a12)/a11;
@@ -277,6 +292,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=16;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 17: {
                     x2 = (b2-a23)/a22;
@@ -287,6 +303,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=17;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 18: {
                     x2=(b2-a21)/a22;
@@ -297,6 +314,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=18;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 19: {
                     x3=(b3-a32)/a33;
@@ -307,6 +325,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=19;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 20: {
                     x3=(b3-a31)/a33;
@@ -317,6 +336,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=20;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 21: {
                     detA = a22*a33-a23*a32;
@@ -329,6 +349,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=21;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 22: {
                     detA = a22*a33-a23*a32;
@@ -341,6 +362,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=22;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 23: {
                     detA = a11*a33-a13*a31;
@@ -353,6 +375,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=23;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 24: {
                     detA = a11*a33-a13*a31;
@@ -365,6 +388,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=24;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 25: {
                     detA = a11*a22-a12*a21;
@@ -377,6 +401,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=25;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 26: {
                     detA = a11*a22-a12*a21;
@@ -389,6 +414,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=26;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 case 27: {
                     detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
@@ -402,6 +428,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         FLAG=27;
                     }
                     else {FLAG=0;}
+                    break;
                 }
                 
             }
