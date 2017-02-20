@@ -3,7 +3,7 @@ function [B,R] = RCM(A)
 % input matrix
 %A = [1 0 0 0 1 0 0 0 ;0 1 1 0 0 1 0 1;0 1 1 0 1 0 0 0 ;0 0 0 1 0 0 1 0;1 0 1 0 1 0 0 0;0 1 0 0 0 1 0 1 ;0 0 0 1 0 0 1 0 ;0 1 0 0 0 1 0 1];
 assert(size(A,1)==size(A,2));
-assert(norm(A-A')==0);
+assert(norm(A-A','fro')<1e-14);
 disp('start RCM');
 % dim of input
 d = size(A,1);
