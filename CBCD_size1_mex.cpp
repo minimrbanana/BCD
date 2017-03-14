@@ -51,7 +51,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     out_r[0] = residual;
     mexPrintf("init:     0, residual=%.15f\n",residual);
     epoch=1;
-    while ((residual>1E-13)&&(epoch<=in_max_iter)){
+    while ((residual>1E-13)&&(epoch<in_max_iter)){
         for (i=0;i<in_d;i++){
             //calc temporal grad
             //use iid as temporal i*in_d

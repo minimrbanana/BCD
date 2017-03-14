@@ -56,7 +56,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     bool FLAG;
     clock_t time0,time1,time2,time3,time4;////////time//////////
     double dt1=0; double dt2=0; double dt3=0; double dt4=0;////////time//////////
-    while ((residual>1E-13)&&(epoch<=in_max_iter)){
+    while ((residual>1E-13)&&(epoch<in_max_iter)){
         for (i=0;i<in_d-2;i=i+3){
             //calc temporal grad
             time0 = clock();////////time//////////

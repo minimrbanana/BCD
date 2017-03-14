@@ -20,7 +20,7 @@ residual(1) = norm(min(0,-b),2);
 fprintf('epoch;    0, residual:%.15f\n',residual(1));
 epoch = 1;
 grad = A*x;
-while residual(epoch)>1E-13 && epoch<=max_iter
+while residual(epoch)>1E-13 && epoch<max_iter
     for ii=1:floor(dim/2)
         i = ii*2-1;
         %grad = grad-A(:,[i,i+1])*x([i,i+1]);
