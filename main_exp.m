@@ -153,13 +153,13 @@ save([EXP.output_dir 'EXP.mat'],'EXP');
 if EXP.plot_convergence ==1
     % plot matrix A
     figure(4),clf;
-    semilogy(0:iters-1,mean(EXP.Obj1(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj1(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj1(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj1(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj1(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj1(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
     % plot matrix B
-    semilogy(0:iters-1,mean(EXP.Obj2(1:EXP.n_loop,:),1),'r--','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj2(1+EXP.n_loop:EXP.n_loop*2,:),1),'g--','LineWidth',2);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj2(1+EXP.n_loop*2:end,:),1),'b--','LineWidth',1.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj2(1:EXP.n_loop,:),1),'r--','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj2(1+EXP.n_loop:EXP.n_loop*2,:),1),'g--','LineWidth',2);hold on;
+    semilogy(0:iters-1,median(EXP.Obj2(1+EXP.n_loop*2:end,:),1),'b--','LineWidth',1.5);hold on;
     % legend of A & B
     % first add runtime into legend
     l1=sprintf('CBCD1,   %.4f s',mean(EXP.T(1,:)));
@@ -174,9 +174,9 @@ if EXP.plot_convergence ==1
     set(gca,'fontsize',14);
     % plot matrix C
     figure(5),clf;
-    semilogy(0:iters-1,mean(EXP.Obj3(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj3(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,mean(EXP.Obj3(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj3(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj3(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
+    semilogy(0:iters-1,median(EXP.Obj3(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
     % legend of C
     % first add runtime into legend
     l7=sprintf('CBCD1,   %.4f s',mean(EXP.T(7,:)));
