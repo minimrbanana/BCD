@@ -16,12 +16,18 @@ if EXP.isplot == 1
     figure(1),clf;
     h1 = imagesc(EXP.A);
     colorbar; hold all;
+    title('Matrix A');
+    saveas(h1,[EXP.output_dir 'figure1.png']);
     figure(2),clf;
     h2 = imagesc(B);
     colorbar; hold all;
+    title('Matrix B');
+    saveas(h2,[EXP.output_dir 'figure2.png']);
     figure(3),clf;
     h3 = imagesc(C);
     colorbar; hold all;
+    title('Matrix C');
+    saveas(h3,[EXP.output_dir 'figure3.png']);
 end
 % create variables for saving the results
 % save runtime
@@ -147,45 +153,52 @@ EXP.T = T;
 EXP.Obj1 = Obj1;
 EXP.Obj2 = Obj2;
 EXP.Obj3 = Obj3;
-save([EXP.output_dir 'EXP.mat'],'EXP');
+EXP.B = B;
+EXP.C = C;
+if EXP.save==1
+    save([EXP.output_dir 'EXP.mat'],'EXP');
+end
 
 % if plot the convergence
 if EXP.plot_convergence ==1
-    % plot matrix A
     figure(4),clf;
-    semilogy(0:iters-1,median(EXP.Obj1(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,median(EXP.Obj1(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,median(EXP.Obj1(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
+    % plot matrix A
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj1(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj1(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj1(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
     % plot matrix B
-    semilogy(0:iters-1,median(EXP.Obj2(1:EXP.n_loop,:),1),'r--','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,median(EXP.Obj2(1+EXP.n_loop:EXP.n_loop*2,:),1),'g--','LineWidth',2);hold on;
-    semilogy(0:iters-1,median(EXP.Obj2(1+EXP.n_loop*2:end,:),1),'b--','LineWidth',1.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj2(1:EXP.n_loop,:),1),'r--','LineWidth',2.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj2(1+EXP.n_loop:EXP.n_loop*2,:),1),'g--','LineWidth',2);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj2(1+EXP.n_loop*2:end,:),1),'b--','LineWidth',1.5);hold on;
     % legend of A & B
     % first add runtime into legend
-    l1=sprintf('CBCD1,   %.4f s',mean(EXP.T(1,:)));
-    l2=sprintf('CBCD2,   %.4f s',mean(EXP.T(2,:)));
-    l3=sprintf('CBCD3,   %.4f s',mean(EXP.T(3,:)));
-    l4=sprintf('CBCD1p, %.4f s',mean(EXP.T(4,:)));
-    l5=sprintf('CBCD2p, %.4f s',mean(EXP.T(5,:)));
-    l6=sprintf('CBCD3p, %.4f s',mean(EXP.T(6,:)));
+    l1=sprintf('CBCD1,   %.4f s, #%d',mean(EXP.T(1,:)),nnz(median(EXP.Obj1(1:EXP.n_loop,:),1)));
+    l2=sprintf('CBCD2,   %.4f s, #%d',mean(EXP.T(2,:)),nnz(median(EXP.Obj1(1+EXP.n_loop:EXP.n_loop*2,:),1)));
+    l3=sprintf('CBCD3,   %.4f s, #%d',mean(EXP.T(3,:)),nnz(median(EXP.Obj1(1+EXP.n_loop*2:end,:),1)));
+    l4=sprintf('CBCD1p, %.4f s, #%d',mean(EXP.T(4,:)),nnz(median(EXP.Obj2(1:EXP.n_loop,:),1)));
+    l5=sprintf('CBCD2p, %.4f s, #%d',mean(EXP.T(5,:)),nnz(median(EXP.Obj2(1+EXP.n_loop:EXP.n_loop*2,:),1)));
+    l6=sprintf('CBCD3p, %.4f s, #%d',mean(EXP.T(6,:)),nnz(median(EXP.Obj2(1+EXP.n_loop*2:end,:),1)));
     legend(l1,l2,l3,l4,l5,l6);
     xlabel('#epoch');ylabel('Objective');
-    title('Convergence Speed and Runtime');
+    title(['Convergence Speed and Runtime mat A&B #EXP ' num2str(eidx)]);
     set(gca,'fontsize',14);
-    % plot matrix C
+    saveas(gca,[EXP.output_dir 'figure4.png']);
+
     figure(5),clf;
-    semilogy(0:iters-1,median(EXP.Obj3(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,median(EXP.Obj3(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
-    semilogy(0:iters-1,median(EXP.Obj3(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
+    % plot matrix C
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj3(1:EXP.n_loop,:),1),'r','LineWidth',2.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj3(1+EXP.n_loop:EXP.n_loop*2,:),1),'g','LineWidth',2.5);hold on;
+    semilogy(0:EXP.max_iter-1,median(EXP.Obj3(1+EXP.n_loop*2:end,:),1),'b','LineWidth',2.5);hold on;
     % legend of C
     % first add runtime into legend
-    l7=sprintf('CBCD1,   %.4f s',mean(EXP.T(7,:)));
-    l8=sprintf('CBCD2,   %.4f s',mean(EXP.T(8,:)));
-    l9=sprintf('CBCD3,   %.4f s',mean(EXP.T(9,:)));
+    l7=sprintf('CBCD1r,   %.4f s, #%d',mean(EXP.T(7,:)),nnz(median(EXP.Obj3(1:EXP.n_loop,:),1)));
+    l8=sprintf('CBCD2r,   %.4f s, #%d',mean(EXP.T(8,:)),nnz(median(EXP.Obj3(1+EXP.n_loop:EXP.n_loop*2,:),1)));
+    l9=sprintf('CBCD3r,   %.4f s, #%d',mean(EXP.T(9,:)),nnz(median(EXP.Obj3(1+EXP.n_loop*2:end,:),1)));
     legend(l7,l8,l9);
     xlabel('#epoch');ylabel('Objective');
-    title('Convergence Speed and Runtime');
+    title(['Convergence Speed and Runtime mat C #EXP ' num2str(eidx)]);
     set(gca,'fontsize',14);
+    saveas(gca,[EXP.output_dir 'figure5.png']);
 end
 
 

@@ -9,6 +9,7 @@ EXP.idx = exp_idx;
 % default paras
 EXP.isplot = 0;  % plot matrix A 
 EXP.plot_convergence = 0; % plot the averaged convergence
+EXP.save = 0;
 EXP.max_iter = 3000;  % max number of iters
 % the parameter details of each exam
 rng(1);
@@ -26,7 +27,7 @@ switch exp_idx
         EXP.d = d;
         EXP.n_loop = 1000;
         EXP.isplot = 0;
-        EXP.plot_convergence = 0;
+        EXP.plot_convergence = 1;
     case 2
         % A has block size2 on the diagonal with shift
         d = 3000;
@@ -228,7 +229,7 @@ switch exp_idx
         EXP.plot_convergence = 0;
     case 200
         % A is a random symmetric matrix 
-        d = 3000; 
+        d = 30; 
         A = sprandsym(d,3/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
