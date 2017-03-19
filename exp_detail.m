@@ -173,14 +173,14 @@ switch exp_idx
         EXP.plot_convergence = 0;
     case 10
         % A has block size5 on the diagonal
-        d = 3000;
-        e0 = [1;1;1;0];
+        d = 30;
+        e0 = [0;1;1;1];
         e1 = e0(:,ones(ceil(d/4),1));
         e1 = reshape(e1 ,numel(e1),1);
-        e0 = [1;1;0;0];
+        e0 = [0;1;1;0];
         e2 = e0(:,ones(ceil(d/4),1));
         e2 = reshape(e2 ,numel(e2),1);
-        e0 = [1;0;0;0];
+        e0 = [0;1;0;0];
         e3 = e0(:,ones(ceil(d/4),1));
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],-[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
@@ -188,9 +188,10 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 1000;
+        EXP.n_loop = 1;
         EXP.isplot = 0;
         EXP.plot_convergence = 0;
+        EXP.save = 1;
     case 100
         % A is a tri-diagonal matrix without noise
         d = 3000; 
