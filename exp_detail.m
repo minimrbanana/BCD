@@ -173,7 +173,7 @@ switch exp_idx
         EXP.plot_convergence = 0;
     case 10
         % A has block size5 on the diagonal
-        d = 30;
+        d = 3000;
         e0 = [0;1;1;1];
         e1 = e0(:,ones(ceil(d/4),1));
         e1 = reshape(e1 ,numel(e1),1);
@@ -188,7 +188,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 1;
+        EXP.n_loop = 1000;
         EXP.isplot = 0;
         EXP.plot_convergence = 0;
         EXP.save = 1;
