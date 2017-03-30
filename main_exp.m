@@ -10,7 +10,9 @@ iters = EXP.max_iter;
 perm = randperm(EXP.d);
 B = EXP.A(:,perm);
 B = B(perm,:);
-[C,reod] = RCM(B);
+%[C,reod] = RCM(B);
+reod = symrcm(B);
+C = B(reod,reod);
 % see if plot
 if EXP.isplot == 1
     figure(1),clf;

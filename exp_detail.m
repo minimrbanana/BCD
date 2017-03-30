@@ -244,12 +244,23 @@ switch exp_idx
     case 900
         % A has only one off-entry 
         % which means after reordering, there is only one size2 block
-        d = 10;
+        % b need to be set to special value
+        d = 12;
         EXP.A = speye(d);
-        EXP.A(floor(d/3),floor(2*d/3))=-1;EXP.A(floor(2*d/3),floor(d/3))=-1;
-        EXP.A(floor(2*d/3),floor(2*d/3))=2;EXP.A(floor(d/3),floor(d/3))=2;
+        EXP.A(1,2)=-1;EXP.A(2,1)=-1;
+        EXP.A(1,1)=2;EXP.A(2,2)=2;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 1;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+    case 901
+        % A has only one off-entry and A \in 2*2
+        % which means A is a size2 block
+        % b need to be set to special value
+        d = 4;
+        EXP.A = sparse([1.1,-1,0,0;-1,1.1,0,0;0,0,1.1,-1;0,0,-1,1.1]);
+        EXP.d = d;
+        EXP.n_loop = 1;
         EXP.isplot = 1;
         EXP.plot_convergence = 1;
 end
