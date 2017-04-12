@@ -31,7 +31,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
     */
     int NZmax = jcs[in_d];
-    mexPrintf("CBCD size 2.cpp...NZmax = %d.\n",NZmax);
+    mexPrintf("CBCD size 2.cpp...Sparsity = %.5f.\n",NZmax/double((in_d*in_d)));
     //allocate output, and init as all 0s
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 

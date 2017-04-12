@@ -16,10 +16,13 @@ x = lower;
 
 % for computing residual, based on the normal cone
 residual = ones(max_iter+1,1);
-residual(1) = norm(min(0,-b),2);
+grad = A*x;
+index_l = find(x<=lower+2*eps);
+index_u = find(x>=upper-2*eps);
+index = find(x>lower+2*eps & x<upper-2*eps);
+residual(1) = norm([grad(index)-b(index);min(0,grad(index_l)-b(index_l));max(0,grad(index_u)-b(index_u))],2);
 fprintf('epoch;    0, residual:%.15f\n',residual(1));
 epoch = 1;
-grad = A*x;
 while residual(epoch)>1E-13 && epoch<max_iter
     for ii=1:floor(dim/3)
         i = ii*3-2;

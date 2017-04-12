@@ -1,6 +1,5 @@
 #include <math.h>
 #include "mex.h"
-//#include <time.h>
 
 #define EPSILON 2.220446e-16
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -38,11 +37,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<in_d;i++){
         out_x[i] = 0;
     }
-    //pre-allocate output of residual, length as max_iter
-    double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} 
+    //pre-allocate output of function value, length as max_iter
+    double* out_fx=new double[in_max_iter]; if(out_fx==NULL){mexErrMsgTxt("pointer out_fx is null");  return;} 
     //allocate gradient, will delete later
     double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
-    //allotace diagonal, for solving small block problem
+    //allocate diagonal, for solving small block problem
     double* diag_A=new double[in_d];  if(diag_A==NULL){mexErrMsgTxt("pointer diag_A is null");  return;} 
     /*grad and residual of init in one loop
      *out_x is initialized as all 0s, so grad is 0 vector
@@ -68,7 +67,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
     }
     residual = sqrt(residual);
-    out_r[0] = residual;
+    out_fx[0] = 0;
     mexPrintf("init:     0, residual=%.15f\n",residual);
     epoch=1;
     while ((residual>1E-13)&&(epoch<in_max_iter)){
@@ -104,8 +103,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 grad[irs[i]] += in_A[i]*out_x[j];
             }
         }
-        //get the residual
+        //get the residual and function value
         residual = 0;
+        out_fx[epoch] = 0;
         for (i=0;i<in_d;i++){
             // i th residual
             df = grad[i]-in_b[i];
@@ -122,17 +122,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             else {
             residual += df*df;
             }
+            // function value
+            // fx = 0.5*<x,grad>-<b,x>
+            out_fx[epoch] += (df-in_b[i])/2.0*out_x[i];
         }
         residual = sqrt(residual);
-        out_r[epoch] = residual;
         //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
         epoch++;
     }
+    //allocate output pointer for f(x)
     plhs[1] = mxCreateDoubleMatrix(epoch,1,mxREAL);
-    double* r = mxGetPr(plhs[1]);if(r==NULL){mexErrMsgTxt("pointer r is null");  return;}
+    double* fx = mxGetPr(plhs[1]);if(fx==NULL){mexErrMsgTxt("pointer fx is null");  return;}
     for (i=0;i<epoch;i++){
-        r[i]=out_r[i];
+        fx[i]=out_fx[i];
     }
-    delete grad; delete out_r; delete diag_A;
+    delete grad; delete out_fx; delete diag_A;
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of CBCD size 1.cpp\n",epoch-1,residual);
 }
