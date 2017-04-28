@@ -1,6 +1,8 @@
 #include <math.h>
 #include "mex.h"
-
+/**
+ * CBCD size 2 with function value output
+ **/
 #define EPSILON 2.220446e-16
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

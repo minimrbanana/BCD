@@ -193,12 +193,12 @@ EXP.check_iter = max([epoch1;epoch2;epoch3]);
 
 %% save the parameters to EXP
 EXP.T = T;
-EXP.KKT_A = KKT_A(:,1:max(epoch1)+1);
-EXP.KKT_B = KKT_B(:,1:max(epoch2)+1);
-EXP.KKT_C = KKT_C(:,1:max(epoch3)+1);
-EXP.OBJ_A = OBJ_A(:,1:max(epoch1)+1);
-EXP.OBJ_B = OBJ_B(:,1:max(epoch2)+1);
-EXP.OBJ_C = OBJ_C(:,1:max(epoch3)+1);
+EXP.KKT_A = KKT_A(:,1:max(epoch1));
+EXP.KKT_B = KKT_B(:,1:max(epoch2));
+EXP.KKT_C = KKT_C(:,1:max(epoch3));
+EXP.OBJ_A = OBJ_A(:,1:max(epoch1));
+EXP.OBJ_B = OBJ_B(:,1:max(epoch2));
+EXP.OBJ_C = OBJ_C(:,1:max(epoch3));
 EXP.B = B;
 EXP.C = C;
 % to save EXP
