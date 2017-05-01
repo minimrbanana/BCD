@@ -12,7 +12,7 @@ EXP.plot_convergence = 0; % plot the averaged convergence
 EXP.save = 0;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
-EXP.max_iter = 2000;  
+EXP.max_iter = 200000;  
 % the parameter details of each exam
 rng(1);
 switch exp_idx

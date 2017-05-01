@@ -1,40 +1,30 @@
 %% BDC with block size 1 & 2 & 3
 
 %% input
+%rng(1);
 % dimension and constraints
-%d = 500;
+d = 100;
 %lower = zeros(d,1);
 %upper = ones(d,1);
 % A and b
-%D = diag(rand(d,1));
-%[U,~,~] = svd(-1+2*rand(d,d));
-%A = U' * D * U;
-% A and B dense
-
-%A = rand(d,d);
-%A = A*A';
-
-% A tri-diagonal
-% diag_A1=ones(1,d-1);
-% A = eye(d)*2-diag(diag_A1,1)-diag(diag_A1',-1);
-% A(1,d)=-1;A(d,1)=-1;
-%A = sparse(A);
-
-%A = sprandsym(d,0.09,0.5,1);
-%A = full(A);
-% c=0.8;
-% A = ones(d,d)*c;
-% A = A + diag(ones(d,1)*(1-c));
-% A = U'*A*U;
+c = 0.8;
+A = ones(d,d)*c;
+A = A + diag(ones(d,1)*(1-c));
+[U,~,~] = svd(1-2*rand(d,d));
+%A = U'*A*U;
+%A = diag([20.8, ones(1,99)*0.8]);
+%A = diag([80.2, ones(1,99)*0.2]);
+%A = U*A*U';
+A = sparse(A);
 % b = zeros(d,1);
-% b = randn(d,1);
-
+%rng(1);
+b = randn(d,1);
 %% solution by dense implementation
 % solution by x=b\A
 y1=0;y2=0;y3=0;y4=0;y5=0;y6=0;y7=0;y8=0;
 % solution by Gauss Seidel Method
 % omitted
-iters = 14000;
+iters = 9000;
 % solution by CBCD with block size 1
 %[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
 
@@ -46,7 +36,13 @@ iters = 14000;
 %[x02,y02,loop] = PDAL_mex(A,b,A'*A,A'*b,1/sqrt(max(eig(A'*A))));
 
 % solution by CBCDmex with block size 1
-% [x3, y3] = CBCD_size1_mex(A, b, d, iters);
+ [x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
+ [x2, y2] = CBCD_size2_gc(A, b, d, iters,1E-2,2,1,1);
+ [x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
+ A = U'*A*U;A = sparse(A);
+ [x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
+ [x2, y2] = CBCD_size2_gc(A, b, d, iters,1E-2,2,1,1);
+ [x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
 %[x3e, y3e] = CBCD_size1_mex_eigen(A, b, d, iters);
 %x=CoordinateDescentQPBoxNonParallel(b,A);
 % solution by RBCDmex with block size 1
@@ -68,11 +64,11 @@ iters = 14000;
 %[x2ss, y2ss] = CBCD_size2_ss(A, b, d, iters);
 %pause(1);
 %[x3ss, y3ss] = CBCD_size3_ss(A, b, d, iters);
-[x1ss, y1ss] = CBCD_size1_mex_sparse(B, Bb, d, iters);
-pause(1);
-[x1ss, y1ss] = CBCD_size1_mex_sparse(C, Cb, d, iters);
-pause(1);
-[x1ss, y1ss] = CBCD_size1_mex_sparse(B, Bb, d, iters);
+% [x1ss, y1ss] = CBCD_size1_mex_sparse(B, Bb, d, iters);
+% pause(1);
+% [x1ss, y1ss] = CBCD_size1_mex_sparse(C, Cb, d, iters);
+% pause(1);
+% [x1ss, y1ss] = CBCD_size1_mex_sparse(B, Bb, d, iters);
 
 
 
