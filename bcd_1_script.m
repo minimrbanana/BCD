@@ -3,19 +3,22 @@
 %% input
 %rng(1);
 % dimension and constraints
-d = 100;
+d = 50;
 %lower = zeros(d,1);
 %upper = ones(d,1);
 % A and b
-c = 0.8;
-A = ones(d,d)*c;
-A = A + diag(ones(d,1)*(1-c));
-[U,~,~] = svd(1-2*rand(d,d));
-%A = U'*A*U;
-%A = diag([20.8, ones(1,99)*0.8]);
-%A = diag([80.2, ones(1,99)*0.2]);
-%A = U*A*U';
-A = sparse(A);
+
+e1 = ones(d,1);
+A = spdiags([-e1,-e1],[-1,1],d,d);
+diagonal = -sum(A);
+diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+A = spdiags(diagonal',0,A);
+
+% c = 0.8;
+% A = ones(d,d)*c;
+% A = A + diag(ones(d,1)*(1-c));
+% A = sparse(A);
+%A = sparse(A);
 % b = zeros(d,1);
 %rng(1);
 b = randn(d,1);
@@ -24,7 +27,7 @@ b = randn(d,1);
 y1=0;y2=0;y3=0;y4=0;y5=0;y6=0;y7=0;y8=0;
 % solution by Gauss Seidel Method
 % omitted
-iters = 9000;
+iters = 20000;
 % solution by CBCD with block size 1
 %[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
 
@@ -36,13 +39,15 @@ iters = 9000;
 %[x02,y02,loop] = PDAL_mex(A,b,A'*A,A'*b,1/sqrt(max(eig(A'*A))));
 
 % solution by CBCDmex with block size 1
- [x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
- [x2, y2] = CBCD_size2_gc(A, b, d, iters,1E-2,2,1,1);
- [x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
- A = U'*A*U;A = sparse(A);
- [x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
- [x2, y2] = CBCD_size2_gc(A, b, d, iters,1E-2,2,1,1);
- [x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
+ %[x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
+[rx3, ry3] = RBCD_size3_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
+[rx2, ry2] = RBCD_size2_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
+[rx1, ry1] = RBCD_size1_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
+ %[x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
+ %A = U'*A*U;A = sparse(A);
+ %[x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
+ [x2, y2] = CBCD_size1_gc(A, b, d, iters,1E-5,-1,1,0);
+ %[x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
 %[x3e, y3e] = CBCD_size1_mex_eigen(A, b, d, iters);
 %x=CoordinateDescentQPBoxNonParallel(b,A);
 % solution by RBCDmex with block size 1

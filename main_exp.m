@@ -43,26 +43,26 @@ for loop=1:EXP.n_loop
     % runtime of matrix A
     %
     profile on;
-    [~, kkt1a] = CBCD_size1_mex_sparse(EXP.A, b, d, iters);
-    [~, kkt2a] = CBCD_size2_ss(EXP.A, b, d, iters);
-    [~, kkt3a] = CBCD_size3_ss(EXP.A, b, d, iters);
+    [~, kkt1a] = CBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kkt2a] = CBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kkt3a] = CBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0);
     p=profile('info');
     profile off;
     % save time for matrix A
     for i=1:size(p.FunctionTable,1)
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(1,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(1,loop));
             fprintf('#epochs : %d \n',length(kkt1a)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(2,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(2,loop));
             fprintf('#epochs : %d \n',length(kkt2a)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(3,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(3,loop));
@@ -88,26 +88,26 @@ for loop=1:EXP.n_loop
     % runtime of matrix B
     %
     profile on;
-    [~, kkt1b] = CBCD_size1_mex_sparse(B, Bb, d, iters);
-    [~, kkt2b] = CBCD_size2_ss(B, Bb, d, iters);
-    [~, kkt3b] = CBCD_size3_ss(B, Bb, d, iters);
+    [~, kkt1b] = CBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kkt2b] = CBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kkt3b] = CBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0);
     p=profile('info');
     profile off;
     % save time for matrix B
     for i=1:size(p.FunctionTable,1)
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(4,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(4,loop));
             fprintf('#epochs : %d \n',length(kkt1b)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(5,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(5,loop));
             fprintf('#epochs : %d \n',length(kkt2b)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(6,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(6,loop));
@@ -133,26 +133,26 @@ for loop=1:EXP.n_loop
     % runtime of matrix C
     %
     profile on;
-    [~, kkt1c] = CBCD_size1_mex_sparse(C, Cb, d, iters);
-    [~, kkt2c] = CBCD_size2_ss(C, Cb, d, iters);
-    [~, kkt3c] = CBCD_size3_ss(C, Cb, d, iters);
+    [~, kkt1c] = CBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kkt2c] = CBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kkt3c] = CBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0);
     p=profile('info');
     profile off;
     % save time for matrix C
     for i=1:size(p.FunctionTable,1)
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_mex_sparse')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(7,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(7,loop));
             fprintf('#epochs : %d \n',length(kkt1c)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(8,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(8,loop));
             fprintf('#epochs : %d \n',length(kkt2c)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_ss')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T(9,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T(9,loop));
@@ -177,29 +177,33 @@ for loop=1:EXP.n_loop
 end
 %% this part shows the mean of ratio of number of epochs 
 % taken by size2/3 over size1, for matrix A,B and C
-% and then remove the all-0 columns in KKT and OBJ
-% remove the experiments that reaches the max iters
+% we don't take the experiments that reaches the max iters
+% when calculating the #2/#1 and #3/#1.
+% However they are counted when plotting in function plot4EXP()
 index2remove = find(epoch1(1:EXP.n_loop)==iters);
 % construct the index of size 123
 vector2remove = [index2remove;index2remove+EXP.n_loop;index2remove+EXP.n_loop*2];
-epoch1(vector2remove)=[];
-epoch2(vector2remove)=[];
-epoch3(vector2remove)=[];
-KKT_A(vector2remove)=[];
-KKT_B(vector2remove)=[];
-KKT_C(vector2remove)=[];
-OBJ_A(vector2remove)=[];
-OBJ_B(vector2remove)=[];
-OBJ_C(vector2remove)=[];
-EXP.n_loop = size(epoch1,1)/3;
-EXP.A_ep2_OVER_ep1 = mean(epoch1(1+EXP.n_loop:2*EXP.n_loop)./epoch1(1:EXP.n_loop));
-EXP.A_ep3_OVER_ep1 = mean(epoch1(1+2*EXP.n_loop:3*EXP.n_loop)./epoch1(1:EXP.n_loop));
-EXP.B_ep2_OVER_ep1 = mean(epoch2(1+EXP.n_loop:2*EXP.n_loop)./epoch2(1:EXP.n_loop));
-EXP.B_ep3_OVER_ep1 = mean(epoch2(1+2*EXP.n_loop:3*EXP.n_loop)./epoch2(1:EXP.n_loop));
-EXP.C_ep2_OVER_ep1 = mean(epoch3(1+EXP.n_loop:2*EXP.n_loop)./epoch3(1:EXP.n_loop));
-EXP.C_ep3_OVER_ep1 = mean(epoch3(1+2*EXP.n_loop:3*EXP.n_loop)./epoch3(1:EXP.n_loop));
+temp_epoch1 = epoch1;
+temp_epoch2 = epoch2;
+temp_epoch3 = epoch3;
+temp_epoch1(vector2remove)=[];
+temp_epoch2(vector2remove)=[];
+temp_epoch3(vector2remove)=[];
+EXP.n_loop = size(temp_epoch1,1)/3;
+EXP.A_ep2_OVER_ep1 = mean(temp_epoch1(1+EXP.n_loop:2*EXP.n_loop)./...
+    temp_epoch1(1:EXP.n_loop));
+EXP.A_ep3_OVER_ep1 = mean(temp_epoch1(1+2*EXP.n_loop:3*EXP.n_loop)./...
+    temp_epoch1(1:EXP.n_loop));
+EXP.B_ep2_OVER_ep1 = mean(temp_epoch2(1+EXP.n_loop:2*EXP.n_loop)./...
+    temp_epoch2(1:EXP.n_loop));
+EXP.B_ep3_OVER_ep1 = mean(temp_epoch2(1+2*EXP.n_loop:3*EXP.n_loop)./...
+    temp_epoch2(1:EXP.n_loop));
+EXP.C_ep2_OVER_ep1 = mean(temp_epoch3(1+EXP.n_loop:2*EXP.n_loop)./...
+    temp_epoch3(1:EXP.n_loop));
+EXP.C_ep3_OVER_ep1 = mean(temp_epoch3(1+2*EXP.n_loop:3*EXP.n_loop)./...
+    temp_epoch3(1:EXP.n_loop));
 % to check whether reaches the max number of iterations or not
-EXP.check_iter = max([epoch1;epoch2;epoch3]);
+EXP.check_iter = max([temp_epoch1;temp_epoch2;temp_epoch3]);
 
 %% save the parameters to EXP
 EXP.T = T;

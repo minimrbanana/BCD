@@ -90,11 +90,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     */
     int NZmax = jcs[in_d];
     mexPrintf("CBCD size 1.cpp...Sparsity = %.5f.\n",NZmax/double((in_d*in_d)));
-    // allocate output, and init as all 0s
+    // allocate output, and init as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
     for (i=0;i<in_d;i++){
-        out_x[i] = 0;
+        out_x[i] = in_init;
     }
     // pre-allocate output of residual, length as max_iter
     double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} 
