@@ -17,7 +17,8 @@ EXP.tRCM = toc(tstart);
 
 % create variables for saving the results
 % save runtime
-T = zeros(9,EXP.n_loop);
+T_c = zeros(9,EXP.n_loop);
+T_r = zeros(9,EXP.n_loop);
 % to save the KKT condition, related to normal cone
 % 1,2,3 for matrix A, B, C
 % first n_loop rows store size1
@@ -26,6 +27,10 @@ T = zeros(9,EXP.n_loop);
 KKT_A = cell(3*EXP.n_loop,1);
 KKT_B = cell(3*EXP.n_loop,1);
 KKT_C = cell(3*EXP.n_loop,1);
+% to save KKT condition of RBCD
+KKTr_A = cell(3*EXP.n_loop,1);
+KKTr_B = cell(3*EXP.n_loop,1);
+KKTr_C = cell(3*EXP.n_loop,1);
 % to save objective, which is function value
 OBJ_A = cell(3*EXP.n_loop,1);
 OBJ_B = cell(3*EXP.n_loop,1);
@@ -34,6 +39,10 @@ OBJ_C = cell(3*EXP.n_loop,1);
 epoch1 = zeros(3*EXP.n_loop,1);
 epoch2 = zeros(3*EXP.n_loop,1);
 epoch3 = zeros(3*EXP.n_loop,1);
+% to save the number of epochs of RBCD
+epoch1r = zeros(3*EXP.n_loop,1);
+epoch2r = zeros(3*EXP.n_loop,1);
+epoch3r = zeros(3*EXP.n_loop,1);
 %% loop to average the cenvergence
 for loop=1:EXP.n_loop
     b = randn(EXP.d,1);
@@ -43,30 +52,51 @@ for loop=1:EXP.n_loop
     % runtime of matrix A
     %
     profile on;
-    [~, kkt1a] = CBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0);
-    [~, kkt2a] = CBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0);
-    [~, kkt3a] = CBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kkt1a]  = CBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kkt2a]  = CBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kkt3a]  = CBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0);
+    [~, kktr1a] = RBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr2a] = RBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr3a] = RBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
     p=profile('info');
     profile off;
     % save time for matrix A
     for i=1:size(p.FunctionTable,1)
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(1,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(1,loop));
+            T_c(1,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(1,loop));
             fprintf('#epochs : %d \n',length(kkt1a)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(2,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(2,loop));
+            T_c(2,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(2,loop));
             fprintf('#epochs : %d \n',length(kkt2a)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(3,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(3,loop));
+            T_c(3,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(3,loop));
             fprintf('#epochs : %d \n',length(kkt3a)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(1,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(1,loop));
+            fprintf('#epochs : %d \n',length(kktr1a)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(2,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(2,loop));
+            fprintf('#epochs : %d \n',length(kktr2a)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(3,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(3,loop));
+            fprintf('#epochs : %d \n',length(kktr3a)-1);
         end
     end
     % save KKT condition, related to normal cone
@@ -76,6 +106,13 @@ for loop=1:EXP.n_loop
     epoch1(loop+EXP.n_loop) = length(kkt2a);
     KKT_A{loop+EXP.n_loop*2} = kkt3a;
     epoch1(loop+EXP.n_loop*2) = length(kkt3a);
+    % save KKT condition of RBCD
+    KKTr_A{loop} = kktr1a;
+    epoch1r(loop) = length(kktr1a);
+    KKTr_A{loop+EXP.n_loop} = kktr2a;
+    epoch1r(loop+EXP.n_loop) = length(kktr2a);
+    KKTr_A{loop+EXP.n_loop*2} = kktr3a;
+    epoch1r(loop+EXP.n_loop*2) = length(kktr3a);
     % run again to get objective(function value)
     [~, obj1a] = CBCD_size1_fx(EXP.A, b, d, iters);
     [~, obj2a] = CBCD_size2_fx(EXP.A, b, d, iters);
@@ -88,30 +125,51 @@ for loop=1:EXP.n_loop
     % runtime of matrix B
     %
     profile on;
-    [~, kkt1b] = CBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0);
-    [~, kkt2b] = CBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0);
-    [~, kkt3b] = CBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kkt1b]  = CBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kkt2b]  = CBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kkt3b]  = CBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0);
+    [~, kktr1b] = RBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr2b] = RBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr3b] = RBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
     p=profile('info');
     profile off;
     % save time for matrix B
     for i=1:size(p.FunctionTable,1)
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(4,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(4,loop));
+            T_c(4,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(4,loop));
             fprintf('#epochs : %d \n',length(kkt1b)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(5,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(5,loop));
+            T_c(5,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(5,loop));
             fprintf('#epochs : %d \n',length(kkt2b)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(6,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(6,loop));
+            T_c(6,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(6,loop));
             fprintf('#epochs : %d \n',length(kkt3b)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(4,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(4,loop));
+            fprintf('#epochs : %d \n',length(kktr1b)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(5,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(5,loop));
+            fprintf('#epochs : %d \n',length(kktr2b)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(6,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(6,loop));
+            fprintf('#epochs : %d \n',length(kktr3b)-1);
         end
     end
     % save objective
@@ -121,6 +179,13 @@ for loop=1:EXP.n_loop
     epoch2(loop+EXP.n_loop) = length(kkt2b);
     KKT_B{loop+EXP.n_loop*2} = kkt3b;
     epoch2(loop+EXP.n_loop*2) = length(kkt3b);
+    % save objective of RBCD
+    KKTr_B{loop} = kktr1b;
+    epoch2r(loop) = length(kktr1b);
+    KKTr_B{loop+EXP.n_loop} = kktr2b;
+    epoch2r(loop+EXP.n_loop) = length(kktr2b);
+    KKTr_B{loop+EXP.n_loop*2} = kktr3b;
+    epoch2r(loop+EXP.n_loop*2) = length(kktr3b);
     % run again to get objective(function value)
     [~, obj1b] = CBCD_size1_fx(B, Bb, d, iters);
     [~, obj2b] = CBCD_size2_fx(B, Bb, d, iters);
@@ -133,30 +198,51 @@ for loop=1:EXP.n_loop
     % runtime of matrix C
     %
     profile on;
-    [~, kkt1c] = CBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0);
-    [~, kkt2c] = CBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0);
-    [~, kkt3c] = CBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kkt1c]  = CBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kkt2c]  = CBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kkt3c]  = CBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0);
+    [~, kktr1c] = RBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr2c] = RBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
+    [~, kktr3c] = RBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
     p=profile('info');
     profile off;
     % save time for matrix C
     for i=1:size(p.FunctionTable,1)
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(7,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(7,loop));
+            T_c(7,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(7,loop));
             fprintf('#epochs : %d \n',length(kkt1c)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size2_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(8,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(8,loop));
+            T_c(8,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(8,loop));
             fprintf('#epochs : %d \n',length(kkt2c)-1);
         end
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size3_gc')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
-            T(9,loop)= p.FunctionTable(i,1).TotalTime;
-            fprintf('Runtime : %.4f seconds.   ',T(9,loop));
+            T_c(9,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_c(9,loop));
             fprintf('#epochs : %d \n',length(kkt3c)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(7,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(7,loop));
+            fprintf('#epochs : %d \n',length(kktr1c)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(8,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(8,loop));
+            fprintf('#epochs : %d \n',length(kktr2c)-1);
+        end
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+            fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
+            T_r(9,loop)= p.FunctionTable(i,1).TotalTime;
+            fprintf('Runtime : %.4f seconds.   ',T_r(9,loop));
+            fprintf('#epochs : %d \n',length(kktr3c)-1);
         end
     end
     % save objective
@@ -165,7 +251,14 @@ for loop=1:EXP.n_loop
     KKT_C{loop+EXP.n_loop} = kkt2c;
     epoch3(loop+EXP.n_loop) = length(kkt2c);
     KKT_C{loop+EXP.n_loop*2} = kkt3c;
-    epoch3(loop+EXP.n_loop*2) = length(kkt3a);
+    epoch3(loop+EXP.n_loop*2) = length(kkt3c);
+    % save objective of RBCD
+    KKTr_C{loop} = kktr1c;
+    epoch3r(loop) = length(kktr1c);
+    KKTr_C{loop+EXP.n_loop} = kktr2c;
+    epoch3r(loop+EXP.n_loop) = length(kktr2c);
+    KKTr_C{loop+EXP.n_loop*2} = kktr3c;
+    epoch3r(loop+EXP.n_loop*2) = length(kktr3c);
     % run again to get objective(function value)
     [~, obj1c] = CBCD_size1_fx(C, Cb, d, iters);
     [~, obj2c] = CBCD_size2_fx(C, Cb, d, iters);
@@ -206,10 +299,14 @@ EXP.C_ep3_OVER_ep1 = mean(temp_epoch3(1+2*EXP.n_loop:3*EXP.n_loop)./...
 EXP.check_iter = max([temp_epoch1;temp_epoch2;temp_epoch3]);
 
 %% save the parameters to EXP
-EXP.T = T;
+EXP.T_c = T_c;
+EXP.T_r = T_r;
 EXP.KKT_A = KKT_A;
 EXP.KKT_B = KKT_B;
 EXP.KKT_C = KKT_C;
+EXP.KKTr_A = KKTr_A;
+EXP.KKTr_B = KKTr_B;
+EXP.KKTr_C = KKTr_C;
 EXP.OBJ_A = OBJ_A;
 EXP.OBJ_B = OBJ_B;
 EXP.OBJ_C = OBJ_C;
@@ -218,6 +315,9 @@ EXP.C = C;
 EXP.epoch1 = epoch1;
 EXP.epoch2 = epoch2;
 EXP.epoch3 = epoch3;
+EXP.epoch1r = epoch1r;
+EXP.epoch2r = epoch2r;
+EXP.epoch3r = epoch3r;
 % to save EXP
 if EXP.save==1
     save([EXP.output_dir 'EXP.mat'],'EXP');

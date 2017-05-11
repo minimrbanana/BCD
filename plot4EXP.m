@@ -37,7 +37,7 @@ end
 % sort the number of epochs and choose the middle one
 [~,I] = sort(EXP.epoch1(1:EXP.n_loop));
 index = I(ceil(EXP.n_loop/2));
-
+%%
 % then plot the cooresponding curve of convergence
 figure(4),clf;
 % in figure 4 we show the convergence of the KKT condition
@@ -50,31 +50,31 @@ semilogy(0:size(EXP.KKT_A{index+EXP.n_loop},1)-1,...
     EXP.KKT_A{index+EXP.n_loop},'g','LineWidth',2.5);hold on;
 semilogy(0:size(EXP.KKT_A{index+EXP.n_loop*2},1)-1,...
     EXP.KKT_A{index+EXP.n_loop*2},'b','LineWidth',2.5);hold on;
-% plot matrix B
-semilogy(0:size(EXP.KKT_B{index},1)-1,...
-    EXP.KKT_B{index},'r--','LineWidth',2.5);hold on;
-semilogy(0:size(EXP.KKT_B{index+EXP.n_loop},1)-1,...
-    EXP.KKT_B{index+EXP.n_loop},'g--','LineWidth',2);hold on;
-semilogy(0:size(EXP.KKT_B{index+EXP.n_loop*2},1)-1,...
-    EXP.KKT_B{index+EXP.n_loop*2},'b--','LineWidth',1.5);hold on;
-% legend of A & B
+% plot matrix A of RBCD
+semilogy(0:size(EXP.KKTr_A{index},1)-1,...
+    EXP.KKTr_A{index},'r--','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKTr_A{index+EXP.n_loop},1)-1,...
+    EXP.KKTr_A{index+EXP.n_loop},'g--','LineWidth',2);hold on;
+semilogy(0:size(EXP.KKTr_A{index+EXP.n_loop*2},1)-1,...
+    EXP.KKTr_A{index+EXP.n_loop*2},'b--','LineWidth',1.5);hold on;
+% legend of A: CBCD & RBCD
 % first add runtime into legend
-l1=sprintf('CBCD1,   %.4f s, #%d',mean(EXP.T(1,:)),...
+l1=sprintf('CBCD1, %.4f s, #%d',mean(EXP.T_c(1,:)),...
     size(EXP.KKT_A{index},1)-1);
-l2=sprintf('CBCD2,   %.4f s, #%d',mean(EXP.T(2,:)),...
+l2=sprintf('CBCD2, %.4f s, #%d',mean(EXP.T_c(2,:)),...
     size(EXP.KKT_A{index+EXP.n_loop},1)-1);
-l3=sprintf('CBCD3,   %.4f s, #%d',mean(EXP.T(3,:)),...
+l3=sprintf('CBCD3, %.4f s, #%d',mean(EXP.T_c(3,:)),...
     size(EXP.KKT_A{index+EXP.n_loop*2},1)-1);
-l4=sprintf('CBCD1p, %.4f s, #%d',mean(EXP.T(4,:)),...
-    size(EXP.KKT_B{index},1)-1);
-l5=sprintf('CBCD2p, %.4f s, #%d',mean(EXP.T(5,:)),...
-    size(EXP.KKT_B{index+EXP.n_loop},1)-1);
-l6=sprintf('CBCD3p, %.4f s, #%d',mean(EXP.T(6,:)),...
-    size(EXP.KKT_B{index+EXP.n_loop*2},1)-1);
-legend(l1,l2,l3,l4,l5,l6);
+l1r=sprintf('RBCD1, %.4f s, #%d',mean(EXP.T_r(1,:)),...
+    size(EXP.KKTr_A{index},1)-1);
+l2r=sprintf('RBCD2, %.4f s, #%d',mean(EXP.T_r(2,:)),...
+    size(EXP.KKTr_A{index+EXP.n_loop},1)-1);
+l3r=sprintf('RBCD3, %.4f s, #%d',mean(EXP.T_r(3,:)),...
+    size(EXP.KKTr_A{index+EXP.n_loop*2},1)-1);
+legend(l1,l2,l3,l1r,l2r,l3r);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('KKT Condition');
-title(['Convergence Speed mat A&B #EXP ' num2str(idx) ' #' num2str(index) ]);
+title(['Convergence Speed A; #' num2str(idx) '; #' num2str(index) ]);
 saveas(gca,[saveDir 'figure4.png']);
 
 %%
@@ -82,26 +82,77 @@ figure(5),clf;
 % in figure 5 we show the convergence of the KKT condition
 % which is based on the normal cone
 
-% plot matrix C
+% plot matrix B
+semilogy(0:size(EXP.KKT_B{index},1)-1,...
+    EXP.KKT_B{index},'r','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKT_B{index+EXP.n_loop},1)-1,...
+    EXP.KKT_B{index+EXP.n_loop},'g','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKT_B{index+EXP.n_loop*2},1)-1,...
+    EXP.KKT_B{index+EXP.n_loop*2},'b','LineWidth',2.5);hold on;
+% plot matrix B of RBCD
+semilogy(0:size(EXP.KKTr_B{index},1)-1,...
+    EXP.KKTr_B{index},'r--','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKTr_B{index+EXP.n_loop},1)-1,...
+    EXP.KKTr_B{index+EXP.n_loop},'g--','LineWidth',2);hold on;
+semilogy(0:size(EXP.KKTr_B{index+EXP.n_loop*2},1)-1,...
+    EXP.KKTr_B{index+EXP.n_loop*2},'b--','LineWidth',1.5);hold on;
+% legend of B; CBCD & RBCD
+% first add runtime into legend
+l4 =sprintf('CBCD1p, %.4f s, #%d',mean(EXP.T_c(4,:)),...
+    size(EXP.KKT_B{index},1)-1);
+l5 =sprintf('CBCD2p, %.4f s, #%d',mean(EXP.T_c(5,:)),...
+    size(EXP.KKT_B{index+EXP.n_loop},1)-1);
+l6 =sprintf('CBCD3p, %.4f s, #%d',mean(EXP.T_c(6,:)),...
+    size(EXP.KKT_B{index+EXP.n_loop*2},1)-1);
+l4r=sprintf('RBCD1p, %.4f s, #%d',mean(EXP.T_r(4,:)),...
+    size(EXP.KKTr_B{index},1)-1);
+l5r=sprintf('RBCD2p, %.4f s, #%d',mean(EXP.T_r(5,:)),...
+    size(EXP.KKTr_B{index+EXP.n_loop},1)-1);
+l6r=sprintf('RBCD3p, %.4f s, #%d',mean(EXP.T_r(6,:)),...
+    size(EXP.KKTr_B{index+EXP.n_loop*2},1)-1);
+legend(l4,l5,l6,l4r,l5r,l6r);
+set(gca,'fontsize',14);
+xlabel('#epoch');ylabel('KKT Condition');
+title(['Convergence Speed B; #EXP ' num2str(idx) '; #' num2str(index) ]);
+saveas(gca,[saveDir 'figure5.png']);
+%%
+figure(6),clf;
+% in figure 6 we show the convergence of the KKT condition
+% which is based on the normal cone
+
+% plot matrix C, first cyclic and then random
 semilogy(0:size(EXP.KKT_C{index},1)-1,...
     EXP.KKT_C{index},'r','LineWidth',2.5);hold on;
 semilogy(0:size(EXP.KKT_C{index+EXP.n_loop},1)-1,...
     EXP.KKT_C{index+EXP.n_loop},'g','LineWidth',2.5);hold on;
 semilogy(0:size(EXP.KKT_C{index+EXP.n_loop*2},1)-1,...
     EXP.KKT_C{index+EXP.n_loop*2},'b','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKTr_C{index},1)-1,...
+    EXP.KKTr_C{index},'r--','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKTr_C{index+EXP.n_loop},1)-1,...
+    EXP.KKTr_C{index+EXP.n_loop},'g--','LineWidth',2.5);hold on;
+semilogy(0:size(EXP.KKTr_C{index+EXP.n_loop*2},1)-1,...
+    EXP.KKTr_C{index+EXP.n_loop*2},'b--','LineWidth',2.5);hold on;
 % legend of C
 % first add runtime into legend
-l7=sprintf('CBCD1r,   %.4f s(+%.4f s), #%d',mean(EXP.T(7,:)),EXP.tRCM,...
+l7 =sprintf('CBCD1r,   %.4f s, #%d',mean(EXP.T_c(7,:)),...
     size(EXP.KKT_C{index},1)-1);
-l8=sprintf('CBCD2r,   %.4f s(+%.4f s), #%d',mean(EXP.T(8,:)),EXP.tRCM,...
+l8 =sprintf('CBCD2r,   %.4f s, #%d',mean(EXP.T_c(8,:)),...
     size(EXP.KKT_C{index+EXP.n_loop},1)-1);
-l9=sprintf('CBCD3r,   %.4f s(+%.4f s), #%d',mean(EXP.T(9,:)),EXP.tRCM,...
+l9 =sprintf('CBCD3r,   %.4f s, #%d',mean(EXP.T_c(9,:)),...
     size(EXP.KKT_C{index+EXP.n_loop*2},1)-1);
-legend(l7,l8,l9);
+l7r=sprintf('RBCD1r,   %.4f s, #%d',mean(EXP.T_r(7,:)),...
+    size(EXP.KKTr_C{index},1)-1);
+l8r=sprintf('RBCD2r,   %.4f s, #%d',mean(EXP.T_r(8,:)),...
+    size(EXP.KKTr_C{index+EXP.n_loop},1)-1);
+l9r=sprintf('RBCD3r,   %.4f s, #%d',mean(EXP.T_r(9,:)),...
+    size(EXP.KKTr_C{index+EXP.n_loop*2},1)-1);
+legend(l7,l8,l9,l7r,l8r,l9r);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('KKT Condition');
-title(['Convergence Speed mat C #EXP ' num2str(idx) ' #' num2str(index) ]);
-saveas(gca,[saveDir 'figure5.png']);
+RCMstr = sprintf(';RCM=%.4fs',EXP.tRCM);
+title(['Convergence Speed C; #' num2str(idx) '-#' num2str(index) RCMstr]);
+saveas(gca,[saveDir 'figure6.png']);
 
 %%
 % first get all the function values according to the index
@@ -118,8 +169,8 @@ fx3c = EXP.OBJ_C{index+EXP.n_loop*2};%fx3c = fx3c(1:nnz(fx3c)+1);
 fmin = min([fx1a;fx2a;fx3a;fx1b;fx2b;fx3b;fx1c;fx2c;fx3c]);
 
 %% then plot for matrix A, B & C
-figure(6),clf;
-% in figure 6 we show the convergence of the Objective
+figure(8),clf;
+% in figure 8 we show the convergence of the Objective
 % which is the function value f(x^k)
 % plot matrix A
 semilogy(0:size(fx1a,1)-1,fx1a-fmin+eps,...
@@ -146,11 +197,11 @@ legend(l1,l2,l3,l4,l5,l6);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('f(x^k)-p^*+eps');
 title(['Convergence Speed mat A&B #EXP ' num2str(idx) ' #' num2str(index) ]);
-saveas(gca,[saveDir 'figure6.png']);
+saveas(gca,[saveDir 'figure8.png']);
 
 %%
-figure(7),clf;
-% in figure 7 we show the convergence of the Objective
+figure(9),clf;
+% in figure 9 we show the convergence of the Objective
 % which is the function value f(x^k)
 
 % plot matrix C
@@ -165,7 +216,7 @@ legend(l7,l8,l9);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('f(x^k)-p^*+eps');
 title(['Convergence Speed mat C #EXP ' num2str(idx) ' #' num2str(index) ]);
-saveas(gca,[saveDir 'figure7.png']);
+saveas(gca,[saveDir 'figure9.png']);
 
 
 end

@@ -12,7 +12,7 @@ EXP.plot_convergence = 0; % plot the averaged convergence
 EXP.save = 0;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
-EXP.max_iter = 200000;  
+EXP.max_iter = 20000;  
 % the parameter details of each exam
 rng(1);
 switch exp_idx
@@ -27,7 +27,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -43,10 +43,10 @@ switch exp_idx
         EXP.A = spdiags(diagonal',0,A);
         EXP.A(1,1)=1;EXP.A(d,d)=1;
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
-        EXP.save = 1;
+        EXP.save = 100;
     case 3
         % A has block size2 on the diagonal
         % with noise off the diagonal
@@ -61,7 +61,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -79,7 +79,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -98,7 +98,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -116,7 +116,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
@@ -138,7 +138,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -160,7 +160,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -182,7 +182,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -204,7 +204,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -217,7 +217,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -230,7 +230,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -243,7 +243,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -258,7 +258,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -272,7 +272,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -286,7 +286,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -300,7 +300,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -314,7 +314,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -328,7 +328,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;    
@@ -342,7 +342,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
@@ -356,7 +356,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;  
@@ -370,7 +370,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 2000;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;         

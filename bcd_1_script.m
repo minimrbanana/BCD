@@ -3,7 +3,7 @@
 %% input
 %rng(1);
 % dimension and constraints
-d = 50;
+d = 100;
 %lower = zeros(d,1);
 %upper = ones(d,1);
 % A and b

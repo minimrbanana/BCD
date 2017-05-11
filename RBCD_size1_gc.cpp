@@ -58,6 +58,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // parameters in the function
     int i,j,epoch;//loop
     double df;
+    double RV;//random variable for RBCD
     // get input args
     // [1]
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
@@ -104,7 +105,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // allocate gradient, will delete later
     double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
     // allocate diagonal, for solving small block problem
-    double* diag_A=new double[in_d];  if(diag_A==NULL){mexErrMsgTxt("pointer diag_A is null");  return;} 
+    double* diag_A=new double[in_d];  if(diag_A==NULL){mexErrMsgTxt("pointer diag_A is null");  return;}
+    // allocate Lipschitz, for random coordinate choose
+    double* Lipschitz=new double[in_d];  if(Lipschitz==NULL){mexErrMsgTxt("pointer Lipschitz is null");  return;}
     /*grad and residual of init loop
      *out_x is initialized as in_init
      *in the loop the elements from the diagonal are also extracted
@@ -127,6 +130,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for (i=jcs[j];i<jcs[j+1];i++){
             grad[irs[i]] += in_A[i]*in_init;
         }
+    }
+    // get the accumulate Lipschitz constant and normalize it
+    // with the parameter alpha: L^alpha
+    Lipschitz[0] = pow(diag_A[0],in_alpha);
+    for (i=1;i<in_d;i++){
+        Lipschitz[i] = Lipschitz[i-1]+pow(diag_A[i],in_alpha);
+    }
+    for (i=0;i<in_d;i++){
+        Lipschitz[i] = Lipschitz[i]/Lipschitz[in_d-1];
+        //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
     }
     // get the residual of KKT condition
     residual = 0;
@@ -170,8 +183,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d;loop_number++){
-                // get the random index, in the range of [0,in_d-1]
-                i = floor(((double)rand())/((double)RAND_MAX+1.0)*(in_d));
+                // get the random index i, in the range of [0,in_d-1]
+                RV = ((double)rand())/((double)RAND_MAX+1.0);
+                i=0;
+                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
+                    i++;
+                }
                 /*calc temporal grad
                  *Since A is symmetric, A(i,:)*x(i) can be 
                  *replaced by A(:,i)*x(i)
@@ -237,8 +254,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d;loop_number++){
-                // get the random index, in the range of [0,in_d-1]
-                i = floor(((double)rand())/((double)RAND_MAX+1.0)*(in_d));
+                // get the random index i, in the range of [0,in_d-1]
+                RV = ((double)rand())/((double)RAND_MAX+1.0);
+                i=0;
+                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
+                    i++;
+                }
                 /*calc temporal grad
                  *Since A is symmetric, A(i,:)*x(i) can be 
                  *replaced by A(:,i)*x(i)
@@ -282,6 +303,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<epoch;i++){
         r[i]=out_r[i];
     }
-    delete grad; delete out_r; delete diag_A;
+    delete grad; delete out_r; delete diag_A; delete Lipschitz;
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of RBCD size 1.cpp\n",epoch-1,residual);
 }

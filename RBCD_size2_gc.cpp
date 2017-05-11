@@ -3,6 +3,7 @@
 #define EPSILON 2.220446e-16
 /**
  * RBCD size 2 with general constraints
+ * random choose from d-1 blocks with overlap
  **/
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -58,6 +59,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // parameters in the function
     int i,j,epoch;//loop
     double df;
+    double RV;//random variable for RBCD
+    double maxA2;//max element in the size 2 block
     // get input args
     // [1]
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
@@ -110,6 +113,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      */
     double* diag_A0=new double[in_d];  if(diag_A0==NULL){mexErrMsgTxt("pointer diag_A0 is null");  return;} 
     double* diag_A1=new double[in_d];  if(diag_A1==NULL){mexErrMsgTxt("pointer diag_A1 is null");  return;} 
+    // allocate Lipschitz, for random coordinate choose
+    double* Lipschitz=new double[in_d];  if(Lipschitz==NULL){mexErrMsgTxt("pointer Lipschitz is null");  return;}
     /*grad and residual of init loop
      *out_x is initialized as in_init
      *in the loop the elements from the diagonal are also extracted
@@ -137,6 +142,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for (i=jcs[j];i<jcs[j+1];i++){
             grad[irs[i]] += in_A[i]*in_init;
         }
+    }
+    // get the accumulate Lipschitz constant and normalize it
+    // first, Lipschitz[0] = max(a11,a12,a21,a22)*2 
+    maxA2 = (diag_A0[0]>=diag_A0[1])?diag_A0[0]:diag_A0[1];
+    Lipschitz[0] = (maxA2>=diag_A1[0])?pow(maxA2*2,in_alpha):pow(diag_A1[0]*2,in_alpha);
+    for (i=1;i<in_d-1;i++){
+        maxA2 = (diag_A0[i]>=diag_A0[i+1])?diag_A0[i]:diag_A0[i+1];
+        Lipschitz[i] = ((maxA2>=diag_A1[i])?pow(maxA2*2,in_alpha):pow(diag_A1[i]*2,in_alpha))+Lipschitz[i-1];
+        //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
+    }
+    for (i=0;i<in_d-1;i++){
+        Lipschitz[i] = Lipschitz[i]/Lipschitz[in_d-2];
+        //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
     }
     // get the residual of KKT condition
     residual = 0;
@@ -191,7 +209,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
-                i = floor(((double)rand())/((double)RAND_MAX+1.0)*(in_d-1));
+                RV = ((double)rand())/((double)RAND_MAX+1.0);
+                i=0;
+                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
+                    i++;
+                }
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
@@ -400,7 +422,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
-                i = floor(((double)rand())/((double)RAND_MAX+1.0)*(in_d-1));
+                RV = ((double)rand())/((double)RAND_MAX+1.0);
+                i=0;
+                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
+                    i++;
+                }
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
