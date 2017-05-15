@@ -60,7 +60,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int i,j,epoch;//loop
     double df;
     double RV;//random variable for RBCD
-    double maxA2;//max element in the size 2 block
     // get input args
     // [1]
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
@@ -144,12 +143,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
     }
     // get the accumulate Lipschitz constant and normalize it
-    // first, Lipschitz[0] = max(a11,a12,a21,a22)*2 
-    maxA2 = (diag_A0[0]>=diag_A0[1])?diag_A0[0]:diag_A0[1];
-    Lipschitz[0] = (maxA2>=diag_A1[0])?pow(maxA2*2,in_alpha):pow(diag_A1[0]*2,in_alpha);
+    // first, Lipschitz[0] = lambda_max of the first block
+    Lipschitz[0] = sqrt((diag_A0[0]+diag_A0[1]+sqrt(pow(diag_A0[0]-diag_A0[1],2)+4*diag_A1[0]*diag_A1[0]))/2.0);
     for (i=1;i<in_d-1;i++){
-        maxA2 = (diag_A0[i]>=diag_A0[i+1])?diag_A0[i]:diag_A0[i+1];
-        Lipschitz[i] = ((maxA2>=diag_A1[i])?pow(maxA2*2,in_alpha):pow(diag_A1[i]*2,in_alpha))+Lipschitz[i-1];
+        Lipschitz[i] = sqrt((diag_A0[i]+diag_A0[i+1]+sqrt(pow(diag_A0[i]-diag_A0[i+1],2)+4*diag_A1[i]*diag_A1[i]))/2.0)+Lipschitz[i-1];
         //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
     }
     for (i=0;i<in_d-1;i++){
@@ -200,6 +197,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         labels[i]=0;
     }
     int FLAG;
+    int Lip_l, Lip_u;// 2 bounds for binary search
     /* if the bounds are defined, and lower<upper
      * we take them as [lower,upper]
      * then do the following
@@ -209,11 +207,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-2;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
@@ -422,11 +426,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-2;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){

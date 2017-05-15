@@ -13,6 +13,13 @@ EXP.save = 0;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
 EXP.max_iter = 20000;  
+% precision
+EXP.precision = 1E-10;
+% the bounds and initial state and alpha in RBCD
+EXP.lower = 0;
+EXP.upper = 1;
+EXP.init  = 0;
+EXP.alpha = 1.0;
 % the parameter details of each exam
 rng(1);
 switch exp_idx
@@ -46,7 +53,7 @@ switch exp_idx
         EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
-        EXP.save = 100;
+        EXP.save = 1;
     case 3
         % A has block size2 on the diagonal
         % with noise off the diagonal
@@ -369,8 +376,9 @@ switch exp_idx
         diagonal = -sum(A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
+        % not clear why the precision cannot reach 1E-13
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 1;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;         
@@ -394,8 +402,9 @@ switch exp_idx
         EXP.A = sparse([1.1,-1,0,0;-1,1.1,0,0;0,0,1.1,-1;0,0,-1,1.1]);
         EXP.d = d;
         EXP.n_loop = 1;
-        EXP.isplot = 1;
+        EXP.isplot = 0;
         EXP.plot_convergence = 1;
+        EXP.save = 1;   
     case 902
         % worst case paper Ac
         d = 100;
@@ -404,9 +413,15 @@ switch exp_idx
         A = A + diag(ones(d,1)*(1-c));
         EXP.A = sparse(A);
         EXP.d = d;
-        EXP.n_loop = 1;
-        EXP.isplot = 1;
+        EXP.n_loop = 100;
+        % for the worst case the interval must be larger.
+        % here we take [-10,10]
+        EXP.lower = -10;
+        EXP.upper = 10;
+        EXP.precision = 1E-5;
+        EXP.isplot = 0;
         EXP.plot_convergence = 1;
+        EXP.save = 1;
     case 903
         % worst case paper Ac with some rotation
         d = 100;
@@ -417,9 +432,15 @@ switch exp_idx
         A = U'*A*U;
         EXP.A = sparse(A);
         EXP.d = d;
-        EXP.n_loop = 1;
-        EXP.isplot = 1;
+        EXP.n_loop = 100;
+        % for the worst case the interval must be larger.
+        % here we take [-10,10]
+        EXP.lower = -10;
+        EXP.upper = 10;
+        EXP.precision = 1E-5;
+        EXP.isplot = 0;
         EXP.plot_convergence = 1;
+        EXP.save = 1;
 end
 EXP.output_dir = ['./result/EXP_idx_' num2str(EXP.idx) '/'];
 if ~exist(EXP.output_dir,'dir')

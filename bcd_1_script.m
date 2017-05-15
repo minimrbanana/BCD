@@ -3,16 +3,24 @@
 %% input
 %rng(1);
 % dimension and constraints
-d = 100;
+d = 50;
 %lower = zeros(d,1);
 %upper = ones(d,1);
 % A and b
 
-e1 = ones(d,1);
-A = spdiags([-e1,-e1],[-1,1],d,d);
+% e1 = ones(d,1);
+% A = spdiags([-e1,-e1],[-1,1],d,d);
+% diagonal = -sum(A);
+% diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+% A = spdiags(diagonal',0,A);
+
+A = sprandsym(d,5/d,0.5,1);
+A = spdiags(zeros(d,1),0,A);
+A = -A./(A+eps);
 diagonal = -sum(A);
 diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
 A = spdiags(diagonal',0,A);
+A(5,5)=100;
 
 % c = 0.8;
 % A = ones(d,d)*c;
@@ -43,11 +51,14 @@ iters = 20000;
 [rx3, ry3] = RBCD_size3_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
 [rx2, ry2] = RBCD_size2_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
 [rx1, ry1] = RBCD_size1_gc(A, b, d, iters,1E-5,-1,1,0,1.0);
- %[x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
+
+% [x1, y1] = CBCD_size1_fx(A, b, d, iters,1E-5,-1,1,0);
+% [x2, y2] = CBCD_size2_fx(A, b, d, iters,1E-5,-1,1,0);
+% [x3, y3] = CBCD_size3_fx(A, b, d, iters,1E-5,-1,1,0);
  %A = U'*A*U;A = sparse(A);
- %[x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
- [x2, y2] = CBCD_size1_gc(A, b, d, iters,1E-5,-1,1,0);
- %[x1, y1] = CBCD_size1_gc(A, b, d, iters,1E-2,2,1,1);
+% [cx1, cy1] = CBCD_size1_gc(A, b, d, iters,1E-5,-1,1,0);
+% [cx2, cy2] = CBCD_size2_gc(A, b, d, iters,1E-5,-1,1,0);
+% [cx3, cy3] = CBCD_size3_gc(A, b, d, iters,1E-5,-1,1,0);
 %[x3e, y3e] = CBCD_size1_mex_eigen(A, b, d, iters);
 %x=CoordinateDescentQPBoxNonParallel(b,A);
 % solution by RBCDmex with block size 1

@@ -4,8 +4,14 @@ function EXP = main_exp(eidx)
 close all;
 clear EXP;
 EXP = exp_detail(eidx);
+% load the parameters from EXP
 d = EXP.d;
 iters = EXP.max_iter;
+l=EXP.lower;
+u=EXP.upper;
+x0=EXP.init;
+alpha =EXP.alpha;
+pre = EXP.precision;
 % do permutation on A, we get B, reordering on B we get C
 perm = randperm(EXP.d);
 B = EXP.A(perm,perm);
@@ -52,12 +58,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix A
     %
     profile on;
-    [~, kkt1a]  = CBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0);
-    [~, kkt2a]  = CBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0);
-    [~, kkt3a]  = CBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0);
-    [~, kktr1a] = RBCD_size1_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr2a] = RBCD_size2_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr3a] = RBCD_size3_gc(EXP.A, b, d, iters,1E-13,0,1,0,1.0);
+    [~, kkt1a]  = CBCD_size1_gc(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kkt2a]  = CBCD_size2_gc(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kkt3a]  = CBCD_size3_gc(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kktr1a] = RBCD_size1_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2a] = RBCD_size2_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3a] = RBCD_size3_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix A
@@ -114,9 +120,9 @@ for loop=1:EXP.n_loop
     KKTr_A{loop+EXP.n_loop*2} = kktr3a;
     epoch1r(loop+EXP.n_loop*2) = length(kktr3a);
     % run again to get objective(function value)
-    [~, obj1a] = CBCD_size1_fx(EXP.A, b, d, iters);
-    [~, obj2a] = CBCD_size2_fx(EXP.A, b, d, iters);
-    [~, obj3a] = CBCD_size3_fx(EXP.A, b, d, iters);
+    [~, obj1a] = CBCD_size1_fx(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, obj2a] = CBCD_size2_fx(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, obj3a] = CBCD_size3_fx(EXP.A, b, d, iters,pre,l,u,x0);
     % save objective, which is function value
     OBJ_A{loop} = obj1a;
     OBJ_A{loop+EXP.n_loop} = obj2a;
@@ -125,12 +131,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix B
     %
     profile on;
-    [~, kkt1b]  = CBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0);
-    [~, kkt2b]  = CBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0);
-    [~, kkt3b]  = CBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0);
-    [~, kktr1b] = RBCD_size1_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr2b] = RBCD_size2_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr3b] = RBCD_size3_gc(B, Bb, d, iters,1E-13,0,1,0,1.0);
+    [~, kkt1b]  = CBCD_size1_gc(B, Bb, d, iters,pre,l,u,x0);
+    [~, kkt2b]  = CBCD_size2_gc(B, Bb, d, iters,pre,l,u,x0);
+    [~, kkt3b]  = CBCD_size3_gc(B, Bb, d, iters,pre,l,u,x0);
+    [~, kktr1b] = RBCD_size1_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2b] = RBCD_size2_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3b] = RBCD_size3_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix B
@@ -187,9 +193,9 @@ for loop=1:EXP.n_loop
     KKTr_B{loop+EXP.n_loop*2} = kktr3b;
     epoch2r(loop+EXP.n_loop*2) = length(kktr3b);
     % run again to get objective(function value)
-    [~, obj1b] = CBCD_size1_fx(B, Bb, d, iters);
-    [~, obj2b] = CBCD_size2_fx(B, Bb, d, iters);
-    [~, obj3b] = CBCD_size3_fx(B, Bb, d, iters);
+    [~, obj1b] = CBCD_size1_fx(B, Bb, d, iters,pre,l,u,x0);
+    [~, obj2b] = CBCD_size2_fx(B, Bb, d, iters,pre,l,u,x0);
+    [~, obj3b] = CBCD_size3_fx(B, Bb, d, iters,pre,l,u,x0);
     % save objective, which is function value
     OBJ_B{loop} = obj1b;
     OBJ_B{loop+EXP.n_loop} = obj2b;
@@ -198,12 +204,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix C
     %
     profile on;
-    [~, kkt1c]  = CBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0);
-    [~, kkt2c]  = CBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0);
-    [~, kkt3c]  = CBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0);
-    [~, kktr1c] = RBCD_size1_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr2c] = RBCD_size2_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
-    [~, kktr3c] = RBCD_size3_gc(C, Cb, d, iters,1E-13,0,1,0,1.0);
+    [~, kkt1c]  = CBCD_size1_gc(C, Cb, d, iters,pre,l,u,x0);
+    [~, kkt2c]  = CBCD_size2_gc(C, Cb, d, iters,pre,l,u,x0);
+    [~, kkt3c]  = CBCD_size3_gc(C, Cb, d, iters,pre,l,u,x0);
+    [~, kktr1c] = RBCD_size1_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2c] = RBCD_size2_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3c] = RBCD_size3_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix C
@@ -260,9 +266,9 @@ for loop=1:EXP.n_loop
     KKTr_C{loop+EXP.n_loop*2} = kktr3c;
     epoch3r(loop+EXP.n_loop*2) = length(kktr3c);
     % run again to get objective(function value)
-    [~, obj1c] = CBCD_size1_fx(C, Cb, d, iters);
-    [~, obj2c] = CBCD_size2_fx(C, Cb, d, iters);
-    [~, obj3c] = CBCD_size3_fx(C, Cb, d, iters);
+    [~, obj1c] = CBCD_size1_fx(C, Cb, d, iters,pre,l,u,x0);
+    [~, obj2c] = CBCD_size2_fx(C, Cb, d, iters,pre,l,u,x0);
+    [~, obj3c] = CBCD_size3_fx(C, Cb, d, iters,pre,l,u,x0);
     % save objective, which is function value
     OBJ_C{loop} = obj1c;
     OBJ_C{loop+EXP.n_loop} = obj2c;

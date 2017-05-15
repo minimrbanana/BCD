@@ -179,16 +179,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * we take them as [lower,upper]
      * then do the following
      */
+    int Lip_l, Lip_u;// 2 bounds for binary search
     if (lower<upper){
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d;loop_number++){
                 // get the random index i, in the range of [0,in_d-1]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-1;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 /*calc temporal grad
                  *Since A is symmetric, A(i,:)*x(i) can be 
                  *replaced by A(:,i)*x(i)
@@ -255,11 +262,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d;loop_number++){
                 // get the random index i, in the range of [0,in_d-1]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-1;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 /*calc temporal grad
                  *Since A is symmetric, A(i,:)*x(i) can be 
                  *replaced by A(:,i)*x(i)

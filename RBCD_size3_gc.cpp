@@ -212,6 +212,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         labels[i]=0;
     }
     int FLAG;
+    int Lip_l, Lip_u;// 2 bounds for binary search
     /* if the bounds are defined, and lower<upper
      * we take them as [lower,upper]
      * then do the following
@@ -221,11 +222,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/3;loop_number++){
                 // get the random index, in the range of [0,in_d-3]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-3;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 // calc temporal grad
                 // three for loops to reuse current memory
                 for (j=jcs[i];j<jcs[i+1];j++){
@@ -855,11 +862,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/3;loop_number++){
                 // get the random index, in the range of [0,in_d-3]
+                // using binary search
+                Lip_l=0; Lip_u=in_d-3;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=0;
-                while (Lipschitz[i]<RV){ //here we use '<' as RV is in [0,1)  
-                    i++;
+                while (Lip_l<Lip_u-1){   
+                    i=Lip_l+(Lip_u-Lip_l)/2;
+                    if (Lipschitz[i]<=RV){Lip_l=i;}
+                    else {Lip_u=i;}
                 }
+                if (RV>=Lipschitz[0]){i=Lip_u;}
+                else {i=Lip_l;}
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1, i+2
                 for (j=jcs[i  ];j<jcs[i+1];j++){

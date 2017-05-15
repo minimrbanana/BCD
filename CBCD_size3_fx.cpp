@@ -1,43 +1,100 @@
 #include <math.h>
 #include "mex.h"
+#define EPSILON 2.220446e-16
 /**
  * CBCD size 3 with function value output
  **/
-#define EPSILON 2.220446e-16
+
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    //input args
-    //here the lower and upper bounds are set in the program
-    //not set by the input parameters
+    /** input args
+     * [1] Matrix A
+     * [2] Vettor b
+     * [3] dimension d
+     * [4] max iters
+     * [5] precision of KKT conditions
+     * here the lower and upper bounds are 
+     * set by the input parameters
+     * if the number of inputs is 5, then it has default constraint [0,1]
+     * if the number of inputs is 7, then the last two are constraints
+     * if lower is greater than upper, then there will be no constraints
+     * [6] lower bound l
+     * [7] upper bound u
+     * [8] initial value of out_x
+     */
+    // first check the number of input values
+    if((nrhs!=5)&&(nrhs!=8)){mexErrMsgTxt("Input Value Error");  return;}
+    // [1]
     double *in_A;
     mwIndex *irs;// for sparse matrix
     mwIndex *jcs;// for sparse matrix
+    // [2]
     double *in_b;
+    // [3]
     int in_d;
+    // [4]
     int in_max_iter;
-    //ouput args
+    // [5]
+    double in_precision;
+    // [6]
+    double lower;
+    // [7]
+    double upper;
+    // [8]
+    double in_init;
+    /** ouput args
+     * [1] the minimizer out_x
+     * [2] the KKT condition residual
+     *     the length will be adjusted in the end,
+     *     and final output is *r
+     */
+    // [1]
     double *out_x;// the minimizer
+    // [2]
+    double residual;
     //parameters in the function
     int i,j,epoch;//loop
-    double residual,df;
+    double df;
     //get input args
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
     irs = mxGetIr(prhs[0]);if(irs==NULL){mexErrMsgTxt("pointer irs is null");  return;}
     jcs = mxGetJc(prhs[0]);if(jcs==NULL){mexErrMsgTxt("pointer jcs is null");  return;}
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
     in_d = mxGetScalar(prhs[2]);if(in_d==NULL){mexErrMsgTxt("pointer in_d is null");  return;}
-    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("pointer in_max_iter is null");  return;}
+    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("max_iter can not be 0");  return;}
+    in_precision = mxGetScalar(prhs[4]);if(in_max_iter==NULL){mexErrMsgTxt("precisionr can not be 0");  return;}
+    // set the bounds according to the input
+    if (nrhs==8){
+        lower = mxGetScalar(prhs[5]);//if(lower==NULL){mexErrMsgTxt("pointer lower is null");  return;};
+        upper = mxGetScalar(prhs[6]);//if(upper==NULL){mexErrMsgTxt("pointer upper is null");  return;};
+        in_init = mxGetScalar(prhs[7]);
+        /* make sure that the upper bound is larger than the lower bound
+         * if the lower bound is greater, 
+         * then we solve for an unconstrained problem
+         */
+        if (lower>=upper){mexPrintf("Bounds Error, Results without constraints\n");in_init=0;}
+        /* if the in_init is out of the bound, set it as lower */
+        else if ((in_init<lower)||(in_init>upper)){in_init=lower;}
+    }
+    else if (nrhs==5){
+        // if the constraints are not set,
+        // the default bound is [0,1]
+        // the default initial is 0
+        lower = 0;
+        upper = 1;
+        in_init = 0;
+    }
     /* Non-Zero elements, is the value of last entry of jcs
      * lengths of in_A and irs are both NZmax
      * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
     */
     int NZmax = jcs[in_d];
     mexPrintf("CBCD size 3.cpp...Sparsity = %.5f.\n",NZmax/double((in_d*in_d)));
-    //allocate output, and init as all 0s
+    //allocate output, and init as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
     for (i=0;i<in_d;i++){
-        out_x[i] = 0;
+        out_x[i] = in_init;
     }
     //pre-allocate output of residual, length as max_iter
     double* out_fx=new double[in_max_iter]; if(out_fx==NULL){mexErrMsgTxt("pointer out_fx is null");  return;} 
@@ -51,20 +108,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double* diag_A0=new double[in_d];  if(diag_A0==NULL){mexErrMsgTxt("pointer diag_A0 is null");  return;} 
     double* diag_A1=new double[in_d];  if(diag_A1==NULL){mexErrMsgTxt("pointer diag_A1 is null");  return;} 
     double* diag_A2=new double[in_d];  if(diag_A2==NULL){mexErrMsgTxt("pointer diag_A2 is null");  return;} 
-    /*grad and residual of init in one loop
-     *out_x is initialized as all 0s, so grad is 0 vector
-     *residual calculation is simplified
+    /*grad and residual of init loop
+     *out_x is initialized as in_init
      *in the loop the elements from the diagonal are also extracted
     */
-    residual = 0;
+    // init gradient as 0s
+    // extract i th element in diagonal and below
     for (i=0;i<in_d;i++){
-        //for initial x=0, g[i]=0
         grad[i]=0;
-        // i th residual
-        df = -in_b[i];
-        if (df<0){
-            residual += df*df;
-        }
         // i th element in diagonal and below
         diag_A0[i]=0;
         diag_A1[i]=0;
@@ -84,6 +135,45 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             }
         }
     }
+    // update gradient
+    for (j=0;j<in_d;j++){
+        for (i=jcs[j];i<jcs[j+1];i++){
+            grad[irs[i]] += in_A[i]*in_init;
+        }
+    }
+    // get the residual of KKT condition
+    residual = 0;
+    out_fx[0] = 0;
+    // if with constraints
+    if (lower<upper){
+        for (i=0;i<in_d;i++){
+            // i th residual
+            df = grad[i]-in_b[i];
+            if (in_init<=lower+2*EPSILON){
+                if (df<0){
+                    residual += df*df;
+                }
+            }
+            else if (in_init>=upper-2*EPSILON){    
+                if (df>0){
+                    residual += df*df;
+                }
+            }
+            else {
+            residual += df*df;
+            }
+            out_fx[0] += (df-in_b[i])/2.0*in_init;
+        }
+    }
+    // if without constraints
+    else{
+        for (i=0;i<in_d;i++){
+            // i th residual
+            df = grad[i]-in_b[i];
+            residual += df*df;
+            out_fx[0] += (df-in_b[i])/2.0*in_init;
+        }
+    }
     residual = sqrt(residual);
     out_fx[0] = 0;
     mexPrintf("init:     0, residual=%.15f\n",residual);
@@ -98,700 +188,805 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         labels[i]=0;
     }
     int FLAG;
-    //clock_t time0,time1,time2,time3,time4;////////time//////////
-    //double dt1=0; double dt2=0; double dt3=0; double dt4=0;////////time//////////
-    while ((residual>1E-13)&&(epoch<in_max_iter)){
-        for (i=0;i<in_d-2;i=i+3){
-            //calc temporal grad
-            //time0 = clock();////////time//////////
-            // three for loops to reuse current memory
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i];
-            }
-            for (j=jcs[i+1];j<jcs[i+2];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i+1];
-            }
-            for (j=jcs[i+2];j<jcs[i+3];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i+2];
-            }
-            //time1 = clock();////////time//////////
-            // update x(i)
-            // define size 3 block
-            a11=diag_A0[i  ]; a12=diag_A1[i  ]; a13=diag_A2[i  ];
-            a21=diag_A1[i  ]; a22=diag_A0[i+1]; a23=diag_A1[i+1];
-            a31=diag_A2[i  ]; a32=diag_A1[i+1]; a33=diag_A0[i+2];
-            b1 =in_b[i]  -grad[i];
-            b2 =in_b[i+1]-grad[i+1];
-            b3 =in_b[i+2]-grad[i+2];
-            // decission tree
-            FLAG = labels[i];
-            //time2 = clock();
-            switch (FLAG){
-                case 1: {
-                    if (b1<=0 && b2<=0 && b3<=0){
-                         out_x[i]=0;
-                         out_x[i+1]=0;
-                         out_x[i+2]=0;
-                         FLAG=1;
+    /* if the bounds are defined, and lower<upper
+     * we take them as [lower,upper]
+     * then do the following
+     */
+    if (lower<upper){
+        while ((residual>in_precision)&&(epoch<in_max_iter)){
+            for (i=0;i<in_d-2;i=i+3){
+                //calc temporal grad
+                // three for loops to reuse current memory
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                for (j=jcs[i+1];j<jcs[i+2];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i+1];
+                }
+                for (j=jcs[i+2];j<jcs[i+3];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i+2];
+                }
+                // update x(i)
+                // define size 3 block
+                a11=diag_A0[i  ]; a12=diag_A1[i  ]; a13=diag_A2[i  ];
+                a21=diag_A1[i  ]; a22=diag_A0[i+1]; a23=diag_A1[i+1];
+                a31=diag_A2[i  ]; a32=diag_A1[i+1]; a33=diag_A0[i+2];
+                b1 =in_b[i]  -grad[i];
+                b2 =in_b[i+1]-grad[i+1];
+                b3 =in_b[i+2]-grad[i+2];
+                // decission tree
+                FLAG = labels[i];
+                switch (FLAG){
+                    case 1: {
+                        if (b1<=(a11+a12+a13)*lower && b2<=(a21+a22+a23)*lower && b3<=(a31+a32+a33)*lower){
+                            out_x[i]  =lower;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=lower;
+                            FLAG=1;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 2: {
-                    if (a13>=b1 && a23>=b2 && a33<=b3){
-                         out_x[i]=0;
-                         out_x[i+1]=0;
-                         out_x[i+2]=1;
-                         FLAG=2;
+                    case 2: {
+                        if (b1<=(a11+a12)*lower+a13*upper && b2<=(a21+a22)*lower+a23*upper && b3>=(a31+a32)*lower+a33*upper){
+                            out_x[i]  =lower;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=upper;
+                            FLAG=2;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 3: {
-                    if (a12>=b1 && a22<=b2 && a32>=b3){
-                         out_x[i]=0;
-                         out_x[i+1]=1;
-                         out_x[i+2]=0;
-                         FLAG=3;
+                    case 3: {
+                        if (b1<=(a11+a13)*lower+a12*upper && b2>=(a21+a23)*lower+a22*upper && b3<=(a31+a33)*lower+a32*upper){
+                            out_x[i]  =lower;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=lower;
+                            FLAG=3;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 4: {
-                    if (a12+a13>=b1 && a22+a23<=b2 && a32+a33<=b3){
-                         out_x[i]=0;
-                         out_x[i+1]=1;
-                         out_x[i+2]=1;
-                         FLAG=4;
+                    case 4: {
+                        if (b1<=a11*lower+(a12+a13)*upper && b2>=a21*lower+(a22+a23)*upper && b3>=a31*lower+(a32+a33)*upper){
+                            out_x[i]  =lower;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=upper;
+                            FLAG=4;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 5: {
-                    if (a11<=b1 && a12>=b2 && a13>=b3){
-                         out_x[i]=1;
-                         out_x[i+1]=0;
-                         out_x[i+2]=0;
-                         FLAG=5;
+                    case 5: {
+                        if (b1>=a11*upper+(a12+a13)*lower && b2<=a21*upper+(a22+a23)*lower && b3<=a31*upper+(a32+a33)*lower){
+                            out_x[i]  =upper;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=lower;
+                            FLAG=5;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 6: {
-                    if (a11+a13<=b1 && a21+a23>=b2 && a31+a33<=b3){
-                         out_x[i]=1;
-                         out_x[i+1]=0;
-                         out_x[i+2]=1;
-                         FLAG=6;
+                    case 6: {
+                        if (b1>=(a11+a12)*upper+a13*lower && b2>=(a21+a22)*upper+a23*lower && b3<=(a31+a32)*upper+a33*lower){
+                            out_x[i]  =upper;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=lower;
+                            FLAG=7;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 7: {
-                    if (a11+a12<=b1 && a21+a22<=b2 && a31+a32>=b3){
-                         out_x[i]=1;
-                         out_x[i+1]=1;
-                         out_x[i+2]=0;
-                         FLAG=7;
+                    case 7: {
+                        if (b1>=(a11+a12)*upper+a13*lower && b2>=(a21+a22)*upper+a23*lower && b3<=(a31+a32)*upper+a33*lower){
+                            out_x[i]  =upper;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=lower;
+                            FLAG=7;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 8: {
-                    if (a11+a12+a13<=b1 && a21+a22+a23<=b2 && a31+a32+a33<=b3){
-                         out_x[i]=1;
-                         out_x[i+1]=1;
-                         out_x[i+2]=1;
-                         FLAG=8;
+                    case 8: {
+                        if (b1>=(a11+a12+a13)*upper && b2>=(a21+a22+a23)*upper && b3>=(a31+a32+a33)*upper){
+                            out_x[i]  =upper;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=upper;
+                            FLAG=8;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 9: {
-                    x3 = b3/a33;
-                    if (x3>=0 && x3<=1 && a13*x3>=b1 && a23*x3>=b2){
-                         out_x[i]=0;
-                         out_x[i+1]=0;
-                         out_x[i+2]=x3;
-                         FLAG=9;
+                    case 9: {
+                        x3 = (b3-(a31+a32)*lower)/a33;
+                        if (x3>=lower && x3<=upper && (a11+a12)*lower+a13*x3>=b1 && (a21+a22)*lower+a23*x3>=b2){
+                            out_x[i]  =lower;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=x3;
+                            FLAG=9;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 10: {
-                     x2 = b2/a22;
-                     if (x2>=0 && x2<=1 && a12*x2>=b1 && a32*x2>=b3){
-                        out_x[i]=0;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=0;
-                        FLAG=10;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 11: {
-                    x1 = b1/a11;
-                    if (x1>=0 && x1<=1 && a21*x1>=b2 && a31*x1>=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=0;
-                        out_x[i+2]=0;
-                        FLAG=11;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 12: {
-                    x1=(b1-a12-a13)/a11;
-                    if (x1>=0 && x1<=1 && a21*x1+a22+a23<=b2 && a31*x1+a32+a33<=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=1;
-                        out_x[i+2]=1;
-                        FLAG=12;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 13: {
-                    x2=(b2-a21-a23)/a22;
-                    if (x2>=0 && x2<=1 && a11+a12*x2+a13<=b1 && a31+a32*x2+a33<=b3){
-                        out_x[i]=1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=1;
-                        FLAG=13;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 14: {
-                    x3=(b3-a31-a32)/a33;
-                    if (x3>=0 && x3<=1 && a11+a12+a13*x3<=b1 && a21+a22+a23*x3<=b2){
-                        out_x[i]=1;
-                        out_x[i+1]=1;
-                        out_x[i+2]=x3;
-                        FLAG=14;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 15: {
-                    x1=(b1-a13)/a11;
-                    if (x1>=0 && x1<=1 && a21*x1+a23>=b2 && a31*x1+a33<=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=0;
-                        out_x[i+2]=1;
-                        FLAG=15;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 16: {
-                    x1 = (b1-a12)/a11;
-                    if (x1>=0 && x1<=1 && a21*x1+a22<=b2 && a31*x1+a32>=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=1;
-                        out_x[i+2]=0;
-                        FLAG=16;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 17: {
-                    x2 = (b2-a23)/a22;
-                    if (x2>=0 && x2<=1 && a12*x2+a13>=b1 && a32*x2+a33<=b3){
-                        out_x[i]=0;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=1;
-                        FLAG=17;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 18: {
-                    x2=(b2-a21)/a22;
-                    if (x2>=0 && x2<=1 && a11+a12*x2<=b1 && a31+a32*x2>=b3){
-                        out_x[i]=1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=0;
-                        FLAG=18;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 19: {
-                    x3=(b3-a32)/a33;
-                    if (x3>=0 && x3<=1 && a12+a13*x3>=b1 && a22+a23*x3<=b2){
-                        out_x[i]=0;
-                        out_x[i+1]=1;
-                        out_x[i+2]=x3;
-                        FLAG=19;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 20: {
-                    x3=(b3-a31)/a33;
-                    if (x3>=0 && x3<=1 && a11+a13*x3<=b1 && a21+a23*x3>=b2){
-                        out_x[i]=1;
-                        out_x[i+1]=0;
-                        out_x[i+2]=x3;
-                        FLAG=20;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 21: {
-                    detA = a22*a33-a23*a32;
-                    x2 = (a33*b2-a23*b3)/detA;
-                    x3 = (a22*b3-a32*b2)/detA;
-                    if (x2>=0 && x2<=1 && x3>=0 && x3<=1 && a12*x2+a13*x3>=b1){
-                        out_x[i]=0;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=x3;
-                        FLAG=21;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 22: {
-                    detA = a22*a33-a23*a32;
-                    x2 = (a33*(b2-a21)-a23*(b3-a31))/detA;
-                    x3 = (a22*(b3-a31)-a32*(b2-a21))/detA;
-                    if (x2>=0 && x2<=1 && x3>=0 && x3<=1 && a11+a12*x2+a13*x3<=b1){
-                        out_x[i]=1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=x3;
-                        FLAG=22;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 23: {
-                    detA = a11*a33-a13*a31;
-                    x1 = (a33*b1-a13*b3)/detA;
-                    x3 = (a11*b3-a31*b1)/detA;
-                    if (x1>=0 && x1<=1 && x3>=0 && x3<=1 && a21*x1+a23*x3>=b2){
-                        out_x[i]=x1;
-                        out_x[i+1]=0;
-                        out_x[i+2]=x3;
-                        FLAG=23;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 24: {
-                    detA = a11*a33-a13*a31;
-                    x1 = (a33*(b1-a12)-a13*(b3-a32))/detA;
-                    x3 = (a11*(b3-a32)-a31*(b1-a12))/detA;
-                    if (x1>=0 && x1<=1 && x3>=0 && x3<=1 && a21*x1+a22+a23*x3<=b2){
-                        out_x[i]=x1;
-                        out_x[i+1]=1;
-                        out_x[i+2]=x3;
-                        FLAG=24;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 25: {
-                    detA = a11*a22-a12*a21;
-                    x1 = (a22*b1-a12*b2)/detA;
-                    x2 = (a11*b2-a21*b1)/detA;
-                    if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && a31*x1+a32*x2>=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=0;
-                        FLAG=25;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 26: {
-                    detA = a11*a22-a12*a21;
-                    x1 = (a22*(b1-a13)-a12*(b2-a23))/detA;
-                    x2 = (a11*(b2-a23)-a21*(b1-a13))/detA;
-                    if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && a31*x1+a32*x2+a33<=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=1;
-                        FLAG=26;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                case 27: {
-                    detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
-                    x1 = ( (a22*a33-a32*a23)*b1-(a12*a33-a32*a13)*b2+(a12*a23-a22*a13)*b3)/detA;
-                    x2 = (-(a21*a33-a31*a23)*b1+(a11*a33-a31*a13)*b2-(a11*a23-a21*a13)*b3)/detA;
-                    x3 = ( (a21*a32-a31*a22)*b1-(a11*a32-a31*a12)*b2+(a11*a22-a21*a12)*b3)/detA;
-                    if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && x3>=0 && x3<=1){
-                        out_x[i]=x1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=x3;
-                        FLAG=27;
-                    }
-                    else {FLAG=0;}
-                    break;
-                }
-                
-            }
-            //if the last choice does not match this time, 9 cases again
-            if (FLAG==0){
-                // first discuss three 0 or 1, 8 cases
-                if (b1<=0 && b2<=0 && b3<=0){
-                    out_x[i]=0;
-                    out_x[i+1]=0;
-                    out_x[i+2]=0;
-                    FLAG=1;
-                }
-                else if (a13>=b1 && a23>=b2 && a33<=b3){
-                    out_x[i]=0;
-                    out_x[i+1]=0;
-                    out_x[i+2]=1;
-                    FLAG=2;
-                }
-                else if (a12>=b1 && a22<=b2 && a32>=b3){
-                    out_x[i]=0;
-                    out_x[i+1]=1;
-                    out_x[i+2]=0;
-                    FLAG=3;
-                }
-                else if (a12+a13>=b1 && a22+a23<=b2 && a32+a33<=b3){
-                    out_x[i]=0;
-                    out_x[i+1]=1;
-                    out_x[i+2]=1;
-                    FLAG=4;
-                }
-                else if (a11<=b1 && a12>=b2 && a13>=b3){
-                    out_x[i]=1;
-                    out_x[i+1]=0;
-                    out_x[i+2]=0;
-                    FLAG=5;
-                }
-                else if (a11+a13<=b1 && a21+a23>=b2 && a31+a33<=b3){
-                    out_x[i]=1;
-                    out_x[i+1]=0;
-                    out_x[i+2]=1;
-                    FLAG=6;
-                }
-                else if (a11+a12<=b1 && a21+a22<=b2 && a31+a32>=b3){
-                    out_x[i]=1;
-                    out_x[i+1]=1;
-                    out_x[i+2]=0;
-                    FLAG=7;
-                }
-                else if (a11+a12+a13<=b1 && a21+a22+a23<=b2 && a31+a32+a33<=b3){
-                    out_x[i]=1;
-                    out_x[i+1]=1;
-                    out_x[i+2]=1;
-                    FLAG=8;
-                }
-                // second discuss two 0s and two 1s, 6 cases
-                if (FLAG==false){
-                    x3 = b3/a33;
-                    if (x3>=0 && x3<=1 && a13*x3>=b1 && a23*x3>=b2){
-                        out_x[i]=0;
-                        out_x[i+1]=0;
-                        out_x[i+2]=x3;
-                        FLAG=9;
-                    }
-                    if (FLAG==false){
-                        x2 = b2/a22;
-                        if (x2>=0 && x2<=1 && a12*x2>=b1 && a32*x2>=b3){
-                            out_x[i]=0;
+                    case 10: {
+                        x2 = (b2-(a21+a23)*lower)/a22;
+                        if (x2>=lower && x2<=upper && (a11+a13)*lower+a12*x2>=b1 && (a31+a33)*lower+a32*x2>=b3){
+                            out_x[i]  =lower;
                             out_x[i+1]=x2;
-                            out_x[i+2]=0;
+                            out_x[i+2]=lower;
                             FLAG=10;
                         }
-                        if (FLAG==false){
-                            x1 = b1/a11;
-                            if (x1>=0 && x1<=1 && a21*x1>=b2 && a31*x1>=b3){
-                                out_x[i]=x1;
-                                out_x[i+1]=0;
-                                out_x[i+2]=0;
-                                FLAG=11;
-                            }
-                            if (FLAG==false){
-                                x1=(b1-a12-a13)/a11;
-                                if (x1>=0 && x1<=1 && a21*x1+a22+a23<=b2 && a31*x1+a32+a33<=b3){
-                                    out_x[i]=x1;
-                                    out_x[i+1]=1;
-                                    out_x[i+2]=1;
-                                    FLAG=12;
-                                }
-                                if (FLAG==false){
-                                    x2=(b2-a21-a23)/a22;
-                                    if (x2>=0 && x2<=1 && a11+a12*x2+a13<=b1 && a31+a32*x2+a33<=b3){
-                                        out_x[i]=1;
-                                        out_x[i+1]=x2;
-                                        out_x[i+2]=1;
-                                        FLAG=13;
-                                    }
-                                    if (FLAG==false){
-                                        x3=(b3-a31-a32)/a33;
-                                        if (x3>=0 && x3<=1 && a11+a12+a13*x3<=b1 && a21+a22+a23*x3<=b2){
-                                            out_x[i]=1;
-                                            out_x[i+1]=1;
-                                            out_x[i+2]=x3;
-                                            FLAG=14;
-                                        }
-                                    }
-                                }
-                            }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 11: {
+                        x1 = (b1-(a12+a13)*lower)/a11;
+                        if (x1>=lower && x1<=upper && (a22+a23)*lower+a21*x1>=b2 && (a32+a33)*lower+a31*x1>=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=lower;
+                            FLAG=11;
                         }
+                        else {FLAG=0;}
+                        break;
                     }
-                }
-                // third discuss one 0 and one 1
-                if (FLAG==false){
-                    x1=(b1-a13)/a11;
-                    if (x1>=0 && x1<=1 && a21*x1+a23>=b2 && a31*x1+a33<=b3){
-                        out_x[i]=x1;
-                        out_x[i+1]=0;
-                        out_x[i+2]=1;
-                        FLAG=15;
+                    case 12: {
+                        x1=(b1-(a12+a13)*upper)/a11;
+                        if (x1>=lower && x1<=upper && a21*x1+(a22+a23)*upper<=b2 && a31*x1+(a32+a33)*upper<=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=upper;
+                            FLAG=12;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    if (FLAG==false){
-                        x1 = (b1-a12)/a11;
-                        if (x1>=0 && x1<=1 && a21*x1+a22<=b2 && a31*x1+a32>=b3){
-                            out_x[i]=x1;
-                            out_x[i+1]=1;
-                            out_x[i+2]=0;
+                    case 13: {
+                        x2=(b2-(a21+a23)*upper)/a22;
+                        if (x2>=lower && x2<=upper && (a11+a13)*upper+a12*x2<=b1 && (a31+a33)*upper+a32*x2<=b3){
+                            out_x[i]  =upper;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=upper;
+                            FLAG=13;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 14: {
+                        x3=(b3-(a31+a32)*upper)/a33;
+                        if (x3>=lower && x3<=upper && (a11+a12)*upper+a13*x3<=b1 && (a21+a22)*upper+a23*x3<=b2){
+                            out_x[i]  =upper;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=x3;
+                            FLAG=14;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 15: {
+                        x1=(b1-a12*lower-a13*upper)/a11;
+                        if (x1>=lower && x1<=upper && a21*x1+a22*lower+a23*upper>=b2 && a31*x1+a32*lower+a33*upper<=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=upper;
+                            FLAG=15;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 16: {
+                        x1 = (b1-a12*upper-a13*lower)/a11;
+                        if (x1>=lower && x1<=upper && a21*x1+a22*upper+a23*lower<=b2 && a31*x1+a32*upper+a33*lower>=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=lower;
                             FLAG=16;
                         }
-                        if (FLAG==false){
-                            x2 = (b2-a23)/a22;
-                            if (x2>=0 && x2<=1 && a12*x2+a13>=b1 && a32*x2+a33<=b3){
-                                out_x[i]=0;
-                                out_x[i+1]=x2;
-                                out_x[i+2]=1;
-                                FLAG=17;
-                            }
-                            if (FLAG==false){
-                                x2=(b2-a21)/a22;
-                                if (x2>=0 && x2<=1 && a11+a12*x2<=b1 && a31+a32*x2>=b3){
-                                    out_x[i]=1;
-                                    out_x[i+1]=x2;
-                                    out_x[i+2]=0;
-                                    FLAG=18;
-                                }
-                                if (FLAG==false){
-                                    x3=(b3-a32)/a33;
-                                    if (x3>=0 && x3<=1 && a12+a13*x3>=b1 && a22+a23*x3<=b2){
-                                        out_x[i]=0;
-                                        out_x[i+1]=1;
-                                        out_x[i+2]=x3;
-                                        FLAG=19;
-                                    }
-                                    if (FLAG==false){
-                                        x3=(b3-a31)/a33;
-                                        if (x3>=0 && x3<=1 && a11+a13*x3<=b1 && a21+a23*x3>=b2){
-                                            out_x[i]=1;
-                                            out_x[i+1]=0;
-                                            out_x[i+2]=x3;
-                                            FLAG=20;
-                                        }
-                                    }
-                                }
-                            }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 17: {
+                        x2 = (b2-a23*upper-a21*lower)/a22;
+                        if (x2>=lower && x2<=upper && a12*x2+a13*upper+a11*lower>=b1 && a32*x2+a33*upper+a31*lower<=b3){
+                            out_x[i]  =lower;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=upper;
+                            FLAG=17;
                         }
+                        else {FLAG=0;}
+                        break;
                     }
-                }
-                // fourth discuss one 1 or one 0
-                if (FLAG==false){
-                    detA = a22*a33-a23*a32;
-                    x2 = (a33*b2-a23*b3)/detA;
-                    x3 = (a22*b3-a32*b2)/detA;
-                    if (x2>=0 && x2<=1 && x3>=0 && x3<=1 && a12*x2+a13*x3>=b1){
-                        out_x[i]=0;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=x3;
-                        FLAG=21;
+                    case 18: {
+                        x2=(b2-a21*upper-a23*lower)/a22;
+                        if (x2>=lower && x2<=upper && a11*upper+a13*lower+a12*x2<=b1 && a31*upper+a33*lower+a32*x2>=b3){
+                            out_x[i]  =upper;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=lower;
+                            FLAG=18;
+                        }
+                        else {FLAG=0;}
+                        break;
                     }
-                    if (FLAG==false){
-                        x2 = (a33*(b2-a21)-a23*(b3-a31))/detA;
-                        x3 = (a22*(b3-a31)-a32*(b2-a21))/detA;
-                        if (x2>=0 && x2<=1 && x3>=0 && x3<=1 && a11+a12*x2+a13*x3<=b1){
-                            out_x[i]=1;
+                    case 19: {
+                        x3=(b3-a32*upper-a31*lower)/a33;
+                        if (x3>=lower && x3<=upper && a11*lower+a12*upper+a13*x3>=b1 && a21*lower+a22*upper+a23*x3<=b2){
+                            out_x[i]  =lower;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=x3;
+                            FLAG=19;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 20: {
+                        x3=(b3-a31*upper-a32*lower)/a33;
+                        if (x3>=lower && x3<=upper && a11*upper+a12*lower+a13*x3<=b1 && a21*upper+a22*lower+a23*x3>=b2){
+                            out_x[i]  =upper;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=x3;
+                            FLAG=20;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 21: {
+                        detA = a22*a33-a23*a32;
+                        x2 = (a33*(b2-a21*lower)-a23*(b3-a31*lower))/detA;
+                        x3 = (a22*(b3-a31*lower)-a32*(b2-a21*lower))/detA;
+                        if (x2>=lower && x2<=upper && x3>=lower && x3<=upper && a11*lower+a12*x2+a13*x3>=b1){
+                            out_x[i]  =lower;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=x3;
+                            FLAG=21;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 22: {
+                        detA = a22*a33-a23*a32;
+                        x2 = (a33*(b2-a21*upper)-a23*(b3-a31*upper))/detA;
+                        x3 = (a22*(b3-a31*upper)-a32*(b2-a21*upper))/detA;
+                        if (x2>=lower && x2<=upper && x3>=lower && x3<=upper && a11*upper+a12*x2+a13*x3<=b1){
+                            out_x[i]  =upper;
                             out_x[i+1]=x2;
                             out_x[i+2]=x3;
                             FLAG=22;
                         }
-                        if (FLAG==false){
-                            detA = a11*a33-a13*a31;
-                            x1 = (a33*b1-a13*b3)/detA;
-                            x3 = (a11*b3-a31*b1)/detA;
-                            if (x1>=0 && x1<=1 && x3>=0 && x3<=1 && a21*x1+a23*x3>=b2){
-                                out_x[i]=x1;
-                                out_x[i+1]=0;
-                                out_x[i+2]=x3;
-                                FLAG=23;
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 23: {
+                        detA = a11*a33-a13*a31;
+                        x1 = (a33*(b1-a12*lower)-a13*(b3-a32*lower))/detA;
+                        x3 = (a11*(b3-a32*lower)-a31*(b1-a12*lower))/detA;
+                        if (x1>=lower && x1<=upper && x3>=lower && x3<=upper && a22*lower+a21*x1+a23*x3>=b2){
+                            out_x[i]  =x1;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=x3;
+                            FLAG=23;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 24: {
+                        detA = a11*a33-a13*a31;
+                        x1 = (a33*(b1-a12*upper)-a13*(b3-a32*upper))/detA;
+                        x3 = (a11*(b3-a32*upper)-a31*(b1-a12*upper))/detA;
+                        if (x1>=lower && x1<=upper && x3>=lower && x3<=upper && a21*x1+a22*upper+a23*x3<=b2){
+                            out_x[i]  =x1;
+                            out_x[i+1]=upper;
+                            out_x[i+2]=x3;
+                            FLAG=24;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 25: {
+                        detA = a11*a22-a12*a21;
+                        x1 = (a22*(b1-a13*lower)-a12*(b2-a23*lower))/detA;
+                        x2 = (a11*(b2-a23*lower)-a21*(b1-a13*lower))/detA;
+                        if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && a31*x1+a32*x2+a33*lower>=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=lower;
+                            FLAG=25;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 26: {
+                        detA = a11*a22-a12*a21;
+                        x1 = (a22*(b1-a13*upper)-a12*(b2-a23*upper))/detA;
+                        x2 = (a11*(b2-a23*upper)-a21*(b1-a13*upper))/detA;
+                        if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && a31*x1+a32*x2+a33*upper<=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=upper;
+                            FLAG=26;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+                    case 27: {
+                        detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
+                        x1 = ( (a22*a33-a32*a23)*b1-(a12*a33-a32*a13)*b2+(a12*a23-a22*a13)*b3)/detA;
+                        x2 = (-(a21*a33-a31*a23)*b1+(a11*a33-a31*a13)*b2-(a11*a23-a21*a13)*b3)/detA;
+                        x3 = ( (a21*a32-a31*a22)*b1-(a11*a32-a31*a12)*b2+(a11*a22-a21*a12)*b3)/detA;
+                        if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && x3>=lower && x3<=upper){
+                            out_x[i]  =x1;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=x3;
+                            FLAG=27;
+                        }
+                        else {FLAG=0;}
+                        break;
+                    }
+
+                }
+                //if the last choice does not match this time, 27 cases again
+                if (FLAG==0){
+                    // first discuss three lower or upper, 8 cases
+                    if (b1<=(a11+a12+a13)*lower && b2<=(a21+a22+a23)*lower && b3<=(a31+a32+a33)*lower){
+                        out_x[i]  =lower;
+                        out_x[i+1]=lower;
+                        out_x[i+2]=lower;
+                        FLAG=1;
+                    }
+                    else if (b1<=(a11+a12)*lower+a13*upper && b2<=(a21+a22)*lower+a23*upper && b3>=(a31+a32)*lower+a33*upper){
+                        out_x[i]  =lower;
+                        out_x[i+1]=lower;
+                        out_x[i+2]=upper;
+                        FLAG=2;
+                    }
+                    else if (b1<=(a11+a13)*lower+a12*upper && b2>=(a21+a23)*lower+a22*upper && b3<=(a31+a33)*lower+a32*upper){
+                        out_x[i]  =lower;
+                        out_x[i+1]=upper;
+                        out_x[i+2]=lower;
+                        FLAG=3;
+                    }
+                    else if (b1<=a11*lower+(a12+a13)*upper && b2>=a21*lower+(a22+a23)*upper && b3>=a31*lower+(a32+a33)*upper){
+                        out_x[i]  =lower;
+                        out_x[i+1]=upper;
+                        out_x[i+2]=upper;
+                        FLAG=4;
+                    }
+                    else if (b1>=a11*upper+(a12+a13)*lower && b2<=a21*upper+(a22+a23)*lower && b3<=a31*upper+(a32+a33)*lower){
+                        out_x[i]  =upper;
+                        out_x[i+1]=lower;
+                        out_x[i+2]=lower;
+                        FLAG=5;
+                    }
+                    else if (b1>=(a11+a13)*upper+a12*lower && b2<=(a21+a23)*upper+a22*lower && b3>=(a31+a33)*upper+a32*lower){
+                        out_x[i]  =upper;
+                        out_x[i+1]=lower;
+                        out_x[i+2]=upper;
+                        FLAG=6;
+                    }
+                    else if (b1>=(a11+a12)*upper+a13*lower && b2>=(a21+a22)*upper+a23*lower && b3<=(a31+a32)*upper+a33*lower){
+                        out_x[i]  =upper;
+                        out_x[i+1]=upper;
+                        out_x[i+2]=lower;
+                        FLAG=7;
+                    }
+                    else if (b1>=(a11+a12+a13)*upper && b2>=(a21+a22+a23)*upper && b3>=(a31+a32+a33)*upper){
+                        out_x[i]  =upper;
+                        out_x[i+1]=upper;
+                        out_x[i+2]=upper;
+                        FLAG=8;
+                    }
+                    // second discuss two lower and two upper, 6 cases
+                    if (FLAG==0){
+                        x3 = (b3-(a31+a32)*lower)/a33;
+                        if (x3>=lower && x3<=upper && (a11+a12)*lower+a13*x3>=b1 && (a21+a22)*lower+a23*x3>=b2){
+                            out_x[i]  =lower;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=x3;
+                            FLAG=9;
+                        }
+                        if (FLAG==0){
+                            x2 = (b2-(a21+a23)*lower)/a22;
+                            if (x2>=lower && x2<=upper && (a11+a13)*lower+a12*x2>=b1 && (a31+a33)*lower+a32*x2>=b3){
+                                out_x[i]  =lower;
+                                out_x[i+1]=x2;
+                                out_x[i+2]=lower;
+                                FLAG=10;
                             }
-                            if (FLAG==false){
-                                x1 = (a33*(b1-a12)-a13*(b3-a32))/detA;
-                                x3 = (a11*(b3-a32)-a31*(b1-a12))/detA;
-                                if (x1>=0 && x1<=1 && x3>=0 && x3<=1 && a21*x1+a22+a23*x3<=b2){
-                                    out_x[i]=x1;
-                                    out_x[i+1]=1;
-                                    out_x[i+2]=x3;
-                                    FLAG=24;
+                            if (FLAG==0){
+                                x1 = (b1-(a12+a13)*lower)/a11;
+                                if (x1>=lower && x1<=upper && (a22+a23)*lower+a21*x1>=b2 && (a32+a33)*lower+a31*x1>=b3){
+                                    out_x[i]  =x1;
+                                    out_x[i+1]=lower;
+                                    out_x[i+2]=lower;
+                                    FLAG=11;
                                 }
-                                if (FLAG==false){
-                                    detA = a11*a22-a12*a21;
-                                    x1 = (a22*b1-a12*b2)/detA;
-                                    x2 = (a11*b2-a21*b1)/detA;
-                                    if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && a31*x1+a32*x2>=b3){
-                                        out_x[i]=x1;
-                                        out_x[i+1]=x2;
-                                        out_x[i+2]=0;
-                                        FLAG=25;
+                                if (FLAG==0){
+                                    x1=(b1-(a12+a13)*upper)/a11;
+                                    if (x1>=lower && x1<=upper && a21*x1+(a22+a23)*upper<=b2 && a31*x1+(a32+a33)*upper<=b3){
+                                        out_x[i]  =x1;
+                                        out_x[i+1]=upper;
+                                        out_x[i+2]=upper;
+                                        FLAG=12;
                                     }
-                                    if (FLAG==false){
-                                        x1 = (a22*(b1-a13)-a12*(b2-a23))/detA;
-                                        x2 = (a11*(b2-a23)-a21*(b1-a13))/detA;
-                                        if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && a31*x1+a32*x2+a33<=b3){
-                                            out_x[i]=x1;
+                                    if (FLAG==0){
+                                        x2=(b2-(a21+a23)*upper)/a22;
+                                        if (x2>=lower && x2<=upper && (a11+a13)*upper+a12*x2<=b1 && (a31+a33)*upper+a32*x2<=b3){
+                                            out_x[i]  =upper;
                                             out_x[i+1]=x2;
-                                            out_x[i+2]=1;
-                                            FLAG=26;
+                                            out_x[i+2]=upper;
+                                            FLAG=13;
+                                        }
+                                        if (FLAG==0){
+                                            x3=(b3-(a31+a32)*upper)/a33;
+                                            if (x3>=lower && x3<=upper && (a11+a12)*upper+a13*x3<=b1 && (a21+a22)*upper+a23*x3<=b2){
+                                                out_x[i]  =upper;
+                                                out_x[i+1]=upper;
+                                                out_x[i+2]=x3;
+                                                FLAG=14;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                // last case, no 0 or 1
-                if (FLAG==false){
-                    // solve 3 dim linear system
-                    detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
-                    x1 = ( (a22*a33-a32*a23)*b1-(a12*a33-a32*a13)*b2+(a12*a23-a22*a13)*b3)/detA;
-                    x2 = (-(a21*a33-a31*a23)*b1+(a11*a33-a31*a13)*b2-(a11*a23-a21*a13)*b3)/detA;
-                    x3 = ( (a21*a32-a31*a22)*b1-(a11*a32-a31*a12)*b2+(a11*a22-a21*a12)*b3)/detA;
-                    if (x1>=0 && x1<=1 && x2>=0 && x2<=1 && x3>=0 && x3<=1){
-                        out_x[i]=x1;
-                        out_x[i+1]=x2;
-                        out_x[i+2]=x3;
-                        FLAG=27;
+                    // third discuss one lower and one upper
+                    if (FLAG==0){
+                        x1=(b1-a12*lower-a13*upper)/a11;
+                        if (x1>=lower && x1<=upper && a21*x1+a22*lower+a23*upper>=b2 && a31*x1+a32*lower+a33*upper<=b3){
+                            out_x[i]  =x1;
+                            out_x[i+1]=lower;
+                            out_x[i+2]=upper;
+                            FLAG=15;
+                        }
+                        if (FLAG==0){
+                            x1 = (b1-a12*upper-a13*lower)/a11;
+                            if (x1>=lower && x1<=upper && a21*x1+a22*upper+a23*lower<=b2 && a31*x1+a32*upper+a33*lower>=b3){
+                                out_x[i]  =x1;
+                                out_x[i+1]=upper;
+                                out_x[i+2]=lower;
+                                FLAG=16;
+                            }
+                            if (FLAG==0){
+                                x2 = (b2-a23*upper-a21*lower)/a22;
+                                if (x2>=lower && x2<=upper && a12*x2+a13*upper+a11*lower>=b1 && a32*x2+a33*upper+a31*lower<=b3){
+                                    out_x[i]  =lower;
+                                    out_x[i+1]=x2;
+                                    out_x[i+2]=upper;
+                                    FLAG=17;
+                                }
+                                if (FLAG==0){
+                                    x2=(b2-a21*upper-a23*lower)/a22;
+                                    if (x2>=lower && x2<=upper && a11*upper+a13*lower+a12*x2<=b1 && a31*upper+a33*lower+a32*x2>=b3){
+                                        out_x[i]  =upper;
+                                        out_x[i+1]=x2;
+                                        out_x[i+2]=lower;
+                                        FLAG=18;
+                                    }
+                                    if (FLAG==0){
+                                        x3=(b3-a32*upper-a31*lower)/a33;
+                                        if (x3>=lower && x3<=upper && a11*lower+a12*upper+a13*x3>=b1 && a21*lower+a22*upper+a23*x3<=b2){
+                                            out_x[i]  =lower;
+                                            out_x[i+1]=upper;
+                                            out_x[i+2]=x3;
+                                            FLAG=19;
+                                        }
+                                        if (FLAG==0){
+                                            x3=(b3-a31*upper-a32*lower)/a33;
+                                            if (x3>=lower && x3<=upper && a11*upper+a12*lower+a13*x3<=b1 && a21*upper+a22*lower+a23*x3>=b2){
+                                                out_x[i]  =upper;
+                                                out_x[i+1]=lower;
+                                                out_x[i+2]=x3;
+                                                FLAG=20;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    else {
-                        mexPrintf("no update, check code\n");
+                    // fourth discuss one 1 or one 0
+                    if (FLAG==0){
+                        detA = a22*a33-a23*a32;
+                        x2 = (a33*(b2-a21*lower)-a23*(b3-a31*lower))/detA;
+                        x3 = (a22*(b3-a31*lower)-a32*(b2-a21*lower))/detA;
+                        if (x2>=lower && x2<=upper && x3>=lower && x3<=upper && a11*lower+a12*x2+a13*x3>=b1){
+                            out_x[i]  =lower;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=x3;
+                            FLAG=21;
+                        }
+                        if (FLAG==0){
+                            x2 = (a33*(b2-a21*upper)-a23*(b3-a31*upper))/detA;
+                            x3 = (a22*(b3-a31*upper)-a32*(b2-a21*upper))/detA;
+                            if (x2>=lower && x2<=upper && x3>=lower && x3<=upper && a11*upper+a12*x2+a13*x3<=b1){
+                                out_x[i]  =upper;
+                                out_x[i+1]=x2;
+                                out_x[i+2]=x3;
+                                FLAG=22;
+                            }
+                            if (FLAG==0){
+                                detA = a11*a33-a13*a31;
+                                x1 = (a33*(b1-a12*lower)-a13*(b3-a32*lower))/detA;
+                                x3 = (a11*(b3-a32*lower)-a31*(b1-a12*lower))/detA;
+                                if (x1>=lower && x1<=upper && x3>=lower && x3<=upper && a22*lower+a21*x1+a23*x3>=b2){
+                                    out_x[i]  =x1;
+                                    out_x[i+1]=lower;
+                                    out_x[i+2]=x3;
+                                    FLAG=23;
+                                }
+                                if (FLAG==0){
+                                    x1 = (a33*(b1-a12*upper)-a13*(b3-a32*upper))/detA;
+                                    x3 = (a11*(b3-a32*upper)-a31*(b1-a12*upper))/detA;
+                                    if (x1>=lower && x1<=upper && x3>=lower && x3<=upper && a21*x1+a22*upper+a23*x3<=b2){
+                                        out_x[i]  =x1;
+                                        out_x[i+1]=upper;
+                                        out_x[i+2]=x3;
+                                        FLAG=24;
+                                    }
+                                    if (FLAG==0){
+                                        detA = a11*a22-a12*a21;
+                                        x1 = (a22*(b1-a13*lower)-a12*(b2-a23*lower))/detA;
+                                        x2 = (a11*(b2-a23*lower)-a21*(b1-a13*lower))/detA;
+                                        if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && a31*x1+a32*x2+a33*lower>=b3){
+                                            out_x[i]  =x1;
+                                            out_x[i+1]=x2;
+                                            out_x[i+2]=lower;
+                                            FLAG=25;
+                                        }
+                                        if (FLAG==0){
+                                            x1 = (a22*(b1-a13*upper)-a12*(b2-a23*upper))/detA;
+                                            x2 = (a11*(b2-a23*upper)-a21*(b1-a13*upper))/detA;
+                                            if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && a31*x1+a32*x2+a33*upper<=b3){
+                                                out_x[i]  =x1;
+                                                out_x[i+1]=x2;
+                                                out_x[i+2]=upper;
+                                                FLAG=26;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // last case, no 0 or 1
+                    if (FLAG==0){
+                        // solve 3 dim linear system
+                        detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
+                        x1 = ( (a22*a33-a32*a23)*b1-(a12*a33-a32*a13)*b2+(a12*a23-a22*a13)*b3)/detA;
+                        x2 = (-(a21*a33-a31*a23)*b1+(a11*a33-a31*a13)*b2-(a11*a23-a21*a13)*b3)/detA;
+                        x3 = ( (a21*a32-a31*a22)*b1-(a11*a32-a31*a12)*b2+(a11*a22-a21*a12)*b3)/detA;
+                        if (x1>=lower && x1<=upper && x2>=lower && x2<=upper && x3>=lower && x3<=upper){
+                            out_x[i]  =x1;
+                            out_x[i+1]=x2;
+                            out_x[i+2]=x3;
+                            FLAG=27;
+                        }
+                        else {
+                            mexPrintf("no update, check code\n");
+                        }
                     }
                 }
-            }
-            //update the labels of blocks
-            labels[i] = FLAG;
-            //update temporal grad
-            //time2 = clock();////////time//////////
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] += in_A[j]*out_x[i];
-            }
-            for (j=jcs[i+1];j<jcs[i+2];j++){
-                grad[irs[j]] += in_A[j]*out_x[i+1];
-            }
-            for (j=jcs[i+2];j<jcs[i+3];j++){
-                grad[irs[j]] += in_A[j]*out_x[i+2];
-            }
-            /*time3 = clock();
-            dt1+=(double)(time1-time0);///((clock_t)1000);
-            dt2+=(double)(time2-time1);
-            dt3+=(double)(time3-time2);
-            dt4+=(double)(time3-time0);*/
-        }
-        if (in_d%3==1){
-            i=in_d-1;
-            //calc temporal grad
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i];
-            }
-            //descent
-            out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
-            //bounds
-            if (out_x[i]>1){
-                out_x[i] = 1;
-            }
-            if (out_x[i]<0){
-                out_x[i] = 0;
-            }
-            //update temporal grad
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] += in_A[j]*out_x[i];
-            }
-        }
-        else if (in_d%3==2){
-            i=in_d-2;
-            //calc temporal grad
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i];
-            }
-            //descent
-            out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
-            //bounds
-            if (out_x[i]>1){
-                out_x[i] = 1;
-            }
-            if (out_x[i]<0){
-                out_x[i] = 0;
-            }
-            //update temporal grad
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] += in_A[j]*out_x[i];
-            }
-            i++;
-            //calc temporal grad
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] -= in_A[j]*out_x[i];
-            }
-            //descent
-            out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
-            //bounds
-            if (out_x[i]>1){
-                out_x[i] = 1;
-            }
-            if (out_x[i]<0){
-                out_x[i] = 0;
-            }
-            //update temporal grad, actually not needed
-            for (j=jcs[i];j<jcs[i+1];j++){
-                grad[irs[j]] += in_A[j]*out_x[i];
-            }
-        }
-        //init gradient as 0s
-        for (i=0;i<in_d;i++){
-            grad[i]=0;
-        }
-        //update true gradient
-        for (j=0;j<in_d;j++){
-            for (i=jcs[j];i<jcs[j+1];i++){
-                grad[irs[i]] += in_A[i]*out_x[j];
-            }
-        }
-        //get the residual
-        residual = 0;
-        out_fx[epoch] = 0;
-        for (i=0;i<in_d;i++){
-            // i th residual
-            df = grad[i]-in_b[i];
-            if (out_x[i]<=0+2*EPSILON){
-                if (df<0){
-                    residual += df*df;
+                //update the labels of blocks
+                labels[i] = FLAG;
+                //update temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+                for (j=jcs[i+1];j<jcs[i+2];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i+1];
+                }
+                for (j=jcs[i+2];j<jcs[i+3];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i+2];
                 }
             }
-            else if (out_x[i]>=1-2*EPSILON){    
-                if (df>0){
-                    residual += df*df;
+            // in the case if in_d cannot divided by 3
+            if (in_d%3==1){
+                i=in_d-1;
+                //calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                //descent
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                //bounds
+                if (out_x[i]>upper){
+                    out_x[i] = upper;
+                }
+                if (out_x[i]<lower){
+                    out_x[i] = lower;
+                }
+                //update temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
                 }
             }
-            else {
-            residual += df*df;
+            else if (in_d%3==2){
+                i=in_d-2;
+                //calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                //descent
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                //bounds
+                if (out_x[i]>upper){
+                    out_x[i] = upper;
+                }
+                if (out_x[i]<lower){
+                    out_x[i] = lower;
+                }
+                //update temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+                i++;
+                //calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                //descent
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                //bounds
+                if (out_x[i]>upper){
+                    out_x[i] = upper;
+                }
+                if (out_x[i]<lower){
+                    out_x[i] = lower;
+                }
+                //update temporal grad, actually not needed
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
             }
-            // function value
-            // fx = 0.5*<x,grad>-<b,x>
-            out_fx[epoch] += (df-in_b[i])/2.0*out_x[i];
+            //init gradient as 0s
+            for (i=0;i<in_d;i++){
+                grad[i]=0;
+            }
+            //update true gradient
+            for (j=0;j<in_d;j++){
+                for (i=jcs[j];i<jcs[j+1];i++){
+                    grad[irs[i]] += in_A[i]*out_x[j];
+                }
+            }
+            //get the residual
+            residual = 0;
+            out_fx[epoch] = 0;
+            for (i=0;i<in_d;i++){
+                // i th residual
+                df = grad[i]-in_b[i];
+                if (out_x[i]<=lower+2*EPSILON){
+                    if (df<0){
+                        residual += df*df;
+                    }
+                }
+                else if (out_x[i]>=upper-2*EPSILON){    
+                    if (df>0){
+                        residual += df*df;
+                    }
+                }
+                else {
+                residual += df*df;
+                }
+                // function value
+                // fx = 0.5*<x,grad>-<b,x>
+                out_fx[epoch] += (df-in_b[i])/2.0*out_x[i];
+            }
+            residual = sqrt(residual);
+            //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
+            epoch++;
         }
-        residual = sqrt(residual);
-        //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
-        epoch++;
+    }
+    /* if the bounds are defined, but lower>=upper
+     * we take them as unconstrained
+     * then do the following
+     */
+    else if (lower>=upper){
+        while ((residual>in_precision)&&(epoch<in_max_iter)){
+            for (i=0;i<in_d-2;i=i+3){
+                // calc temporal grad
+                // sparse g=g-A(:,i)*x(i) and i+1, i+2
+                for (j=jcs[i  ];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                for (j=jcs[i+1];j<jcs[i+2];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i+1];
+                }
+                for (j=jcs[i+2];j<jcs[i+3];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i+2];
+                }
+                // update x(i)
+                // define size 3 block
+                a11=diag_A0[i  ]; a12=diag_A1[i  ]; a13=diag_A2[i  ];
+                a21=diag_A1[i  ]; a22=diag_A0[i+1]; a23=diag_A1[i+1];
+                a31=diag_A2[i  ]; a32=diag_A1[i+1]; a33=diag_A0[i+2];
+                b1 =in_b[i]  -grad[i];
+                b2 =in_b[i+1]-grad[i+1];
+                b3 =in_b[i+2]-grad[i+2];
+                // solve 3 dim linear system
+                detA = a11*a22*a33+a21*a32*a13+a31*a12*a23-a11*a32*a23-a22*a13*a31-a33*a12*a21;
+                out_x[i  ] = ( (a22*a33-a32*a23)*b1-(a12*a33-a32*a13)*b2+(a12*a23-a22*a13)*b3)/detA;
+                out_x[i+1] = (-(a21*a33-a31*a23)*b1+(a11*a33-a31*a13)*b2-(a11*a23-a21*a13)*b3)/detA;
+                out_x[i+2] = ( (a21*a32-a31*a22)*b1-(a11*a32-a31*a12)*b2+(a11*a22-a21*a12)*b3)/detA;
+                // update temporal grad
+                for (j=jcs[i  ];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+                for (j=jcs[i+1];j<jcs[i+2];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i+1];
+                }
+                for (j=jcs[i+2];j<jcs[i+3];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i+2];
+                }
+            }
+            // in the case if in_d cannot divided by 3
+            if (in_d%3==1){
+                i=in_d-1;
+                // calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                // descent
+                // without bounds
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                // update temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+            }
+            else if (in_d%3==2){
+                i=in_d-2;
+                // calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                // descent
+                // without bounds
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                // update temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+                i++;
+                // calc temporal grad
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] -= in_A[j]*out_x[i];
+                }
+                // descent
+                // without bounds
+                out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
+                // update temporal grad, actually not needed
+                for (j=jcs[i];j<jcs[i+1];j++){
+                    grad[irs[j]] += in_A[j]*out_x[i];
+                }
+            }
+            // init gradient as 0s
+            for (i=0;i<in_d;i++){
+                grad[i]=0;
+            }
+            // update true gradient
+            for (j=0;j<in_d;j++){
+                for (i=jcs[j];i<jcs[j+1];i++){
+                    grad[irs[i]] += in_A[i]*out_x[j];
+                }
+            }
+            // get the residual
+            residual = 0;
+            out_fx[epoch] = 0;
+            for (i=0;i<in_d;i++){
+                // i th residual
+                df = grad[i]-in_b[i];
+                residual += df*df;
+                // function value
+                // fx = 0.5*<x,grad>-<b,x>
+                out_fx[epoch] += (df-in_b[i])/2.0*out_x[i];
+            }
+            residual = sqrt(residual);
+            //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
+            epoch++;
+        }
     }
     plhs[1] = mxCreateDoubleMatrix(epoch,1,mxREAL);
-    double *fx = mxGetPr(plhs[1]);if(fx==NULL){mexErrMsgTxt("pointer fx is null");  return;}
+    double* fx = mxGetPr(plhs[1]);if(fx==NULL){mexErrMsgTxt("pointer fx is null");  return;}
     for (i=0;i<epoch;i++){
         fx[i]=out_fx[i];
     }
