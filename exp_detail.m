@@ -12,7 +12,7 @@ EXP.plot_convergence = 0; % plot the averaged convergence
 EXP.save = 0;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
-EXP.max_iter = 20000;  
+EXP.max_iter = 200000;  
 % precision
 EXP.precision = 1E-10;
 % the bounds and initial state and alpha in RBCD

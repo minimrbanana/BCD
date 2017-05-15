@@ -167,10 +167,9 @@ fx1c = EXP.OBJ_C{index};%fx1c = fx1c(1:nnz(fx1c)+1);
 fx2c = EXP.OBJ_C{index+EXP.n_loop};%fx2c = fx2c(1:nnz(fx2c)+1);
 fx3c = EXP.OBJ_C{index+EXP.n_loop*2};%fx3c = fx3c(1:nnz(fx3c)+1);
 fmin = min([fx1a;fx2a;fx3a;fx1b;fx2b;fx3b;fx1c;fx2c;fx3c]);
-
-%% then plot for matrix A, B & C
-figure(8),clf;
-% in figure 8 we show the convergence of the Objective
+%% then plot function value for matrix A
+figure(7),clf;
+% in figure 7 we show the convergence of the Objective
 % which is the function value f(x^k)
 % plot matrix A
 semilogy(0:size(fx1a,1)-1,fx1a-fmin+eps,...
@@ -179,31 +178,41 @@ semilogy(0:size(fx2a,1)-1,fx2a-fmin+eps,...
     'g','LineWidth',2.5);hold on;
 semilogy(0:size(fx3a,1)-1,fx3a-fmin+eps,...
     'b','LineWidth',2.5);hold on;
-% % plot matrix B
-semilogy(0:size(fx1b,1)-1,fx1b-fmin+eps,...
-    'r--','LineWidth',2.5);hold on;
-semilogy(0:size(fx2b,1)-1,fx2b-fmin+eps,...
-    'g--','LineWidth',2);hold on;
-semilogy(0:size(fx3b,1)-1,fx3b-fmin+eps,...
-    'b--','LineWidth',1.5);hold on;
 % legend of A & B
 l1=sprintf('CBCD1,    #%d',size(fx1a,1)-1);
 l2=sprintf('CBCD2,    #%d',size(fx2a,1)-1);
 l3=sprintf('CBCD3,    #%d',size(fx3a,1)-1);
+legend(l1,l2,l3);
+set(gca,'fontsize',14);
+xlabel('#epoch');ylabel('f(x^k)-p^*+eps');
+title(['Convergence Speed mat A #EXP ' num2str(idx) ' #' num2str(index) ]);
+saveas(gca,[saveDir 'figure7.png']);
+
+%% then plot function value for matrix B
+figure(8),clf;
+% in figure 8 we show the convergence of the Objective
+% which is the function value f(x^k)
+% plot matrix B
+semilogy(0:size(fx1b,1)-1,fx1b-fmin+eps,...
+    'r','LineWidth',2.5);hold on;
+semilogy(0:size(fx2b,1)-1,fx2b-fmin+eps,...
+    'g','LineWidth',2.5);hold on;
+semilogy(0:size(fx3b,1)-1,fx3b-fmin+eps,...
+    'b','LineWidth',2.5);hold on;
+% legend of A & B
 l4=sprintf('CBCD1p,  #%d',size(fx1b,1)-1);
 l5=sprintf('CBCD2p,  #%d',size(fx2b,1)-1);
 l6=sprintf('CBCD3p,  #%d',size(fx3b,1)-1);
-legend(l1,l2,l3,l4,l5,l6);
+legend(l4,l5,l6);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('f(x^k)-p^*+eps');
-title(['Convergence Speed mat A&B #EXP ' num2str(idx) ' #' num2str(index) ]);
+title(['Convergence Speed mat B #EXP ' num2str(idx) ' #' num2str(index) ]);
 saveas(gca,[saveDir 'figure8.png']);
 
 %%
 figure(9),clf;
 % in figure 9 we show the convergence of the Objective
 % which is the function value f(x^k)
-
 % plot matrix C
 semilogy(0:size(fx1c,1)-1,fx1c-fmin+eps,'r','LineWidth',2.5);hold on;
 semilogy(0:size(fx2c,1)-1,fx2c-fmin+eps,'g','LineWidth',2.5);hold on;
