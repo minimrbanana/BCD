@@ -60,7 +60,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     irs = mxGetIr(prhs[0]);if(irs==NULL){mexErrMsgTxt("pointer irs is null");  return;}
     jcs = mxGetJc(prhs[0]);if(jcs==NULL){mexErrMsgTxt("pointer jcs is null");  return;}
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
-    in_d = mxGetScalar(prhs[2]);if(in_d==NULL){mexErrMsgTxt("pointer in_d is null");  return;}
+    in_d = mxGetScalar(prhs[2]);if(in_d<2){mexErrMsgTxt("dimension error");  return;}
     in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("max_iter can not be 0");  return;}
     in_precision = mxGetScalar(prhs[4]);if(in_max_iter==NULL){mexErrMsgTxt("precisionr can not be 0");  return;}
     // set the bounds according to the input
@@ -202,7 +202,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 b2 =in_b[i+1]-grad[i+1];
                 // NINE choices, frequently used variables
                 detA2 = a11*a22-a12*a21;
-                
+                if(detA2==0){mexErrMsgTxt("Input Matrix is not positive definite");  return;}
                 // this switch first check whether the last choice matches or not
                 FLAG = labels[i];
                 switch (FLAG){
@@ -427,6 +427,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 b1 =in_b[i]  -grad[i];
                 b2 =in_b[i+1]-grad[i+1];
                 detA2 = a11*a22-a12*a21;
+                if(detA2==0){mexErrMsgTxt("Input Matrix is not positive definite");  return;}
                 // solve for linear system 2*2
                 out_x[i  ]=(a22*b1-a12*b2)/detA2;
                 out_x[i+1]=(a11*b2-a21*b1)/detA2;

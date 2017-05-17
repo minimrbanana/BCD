@@ -5,7 +5,6 @@
  * RBCD size 2 with general constraints
  * random choose from d-1 blocks with overlap
  **/
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     /** input args
@@ -234,7 +233,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 b2 =in_b[i+1]-grad[i+1];
                 // NINE choices, frequently used variables
                 detA2 = a11*a22-a12*a21;
-
+                if(detA2==0){mexErrMsgTxt("Input Matrix is not positive definite");  return;}
                 // this switch first check whether the last choice matches or not
                 FLAG = labels[i];
                 switch (FLAG){
@@ -452,6 +451,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 b1 =in_b[i]  -grad[i];
                 b2 =in_b[i+1]-grad[i+1];
                 detA2 = a11*a22-a12*a21;
+                if(detA2==0){mexErrMsgTxt("Input Matrix is not positive definite");  return;}
                 // solve for linear system 2*2
                 out_x[i  ]=(a22*b1-a12*b2)/detA2;
                 out_x[i+1]=(a11*b2-a21*b1)/detA2;
