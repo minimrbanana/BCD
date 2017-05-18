@@ -3,7 +3,7 @@
 #define EPSILON 2.220446e-16
 /**
  * RBCD size 2 with general constraints
- * random choose from d-1 blocks with overlap
+ * random choose from uniform distribution
  **/
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -111,8 +111,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      */
     double* diag_A0=new double[in_d];  if(diag_A0==NULL){mexErrMsgTxt("pointer diag_A0 is null");  return;} 
     double* diag_A1=new double[in_d];  if(diag_A1==NULL){mexErrMsgTxt("pointer diag_A1 is null");  return;} 
-    // allocate Lipschitz, for random coordinate choose
-    double* Lipschitz=new double[in_d];  if(Lipschitz==NULL){mexErrMsgTxt("pointer Lipschitz is null");  return;}
     /*grad and residual of init loop
      *out_x is initialized as in_init
      *in the loop the elements from the diagonal are also extracted
@@ -140,17 +138,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for (i=jcs[j];i<jcs[j+1];i++){
             grad[irs[i]] += in_A[i]*in_init;
         }
-    }
-    // get the accumulate Lipschitz constant and normalize it
-    // first, Lipschitz[0] = lambda_max of the first block
-    Lipschitz[0] = sqrt((diag_A0[0]+diag_A0[1]+sqrt(pow(diag_A0[0]-diag_A0[1],2)+4*diag_A1[0]*diag_A1[0]))/2.0);
-    for (i=1;i<in_d-1;i++){
-        Lipschitz[i] = sqrt((diag_A0[i]+diag_A0[i+1]+sqrt(pow(diag_A0[i]-diag_A0[i+1],2)+4*diag_A1[i]*diag_A1[i]))/2.0)+Lipschitz[i-1];
-        //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
-    }
-    for (i=0;i<in_d-1;i++){
-        Lipschitz[i] = Lipschitz[i]/Lipschitz[in_d-2];
-        //mexPrintf("Lip=%.15f\n",Lipschitz[i]);
     }
     // get the residual of KKT condition
     residual = 0;
@@ -206,17 +193,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
-                // using binary search
-                Lip_l=0; Lip_u=in_d-2;
+                // using uniform distribution
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
-                i=0;
-                while (Lip_l<Lip_u-1){   
-                    i=Lip_l+(Lip_u-Lip_l)/2;
-                    if (Lipschitz[i]<=RV){Lip_l=i;}
-                    else {Lip_u=i;}
-                }
-                if (RV>=Lipschitz[0]){i=Lip_u;}
-                else {i=Lip_l;}
+                i=RV*(in_d-1);
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
@@ -426,16 +405,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             for (int loop_number=0;loop_number<in_d/2;loop_number++){
                 // get the random index, in the range of [0,in_d-2]
                 // using binary search
-                Lip_l=0; Lip_u=in_d-2;
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
-                i=0;
-                while (Lip_l<Lip_u-1){   
-                    i=Lip_l+(Lip_u-Lip_l)/2;
-                    if (Lipschitz[i]<=RV){Lip_l=i;}
-                    else {Lip_u=i;}
-                }
-                if (RV>=Lipschitz[0]){i=Lip_u;}
-                else {i=Lip_l;}
+                i=RV*(in_d-1);
                 // calc temporal grad
                 // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
@@ -492,7 +463,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<epoch;i++){
         r[i]=out_r[i];
     }
-    delete grad; delete out_r; delete diag_A0; delete diag_A1; delete labels;delete Lipschitz;
+    delete grad; delete out_r; delete diag_A0; delete diag_A1; delete labels;
     //mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of RBCD size 2.cpp\n",epoch-1,residual);
 }

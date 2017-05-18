@@ -44,9 +44,9 @@ iters = 2000;
 
 % solution by CBCDmex with block size 1
  %[x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
-[rx3, ry3] = RBCD_size3_gc_h(A, b, d, iters,1E-5,2,1,0,1.0);
-[rx2, ry2] = RBCD_size2_gc_h(A, b, d, iters,1E-5,2,1,0,1.0);
-[rx1, ry1] = RBCD_size2_gc(A, b, d, iters,1E-5,2,1,0,1.0);
+[rx3, ry3] = RBCD_size3_gc_u(A, b, d, iters,1E-5,0,1,0,1.0);
+[rx2, ry2] = RBCD_size2_gc_u(A, b, d, iters,1E-5,0,1,0,1.0);
+[rx1, ry1] = RBCD_size2_gc(A, b, d, iters,1E-5,0,1,0,1.0);
 
 % [x1, y1] = CBCD_size1_fx(A, b, d, iters,1E-5,-1,1,0);
 % [x2, y2] = CBCD_size2_fx(A, b, d, iters,1E-5,-1,1,0);

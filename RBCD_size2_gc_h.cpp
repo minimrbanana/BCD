@@ -458,7 +458,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<epoch;i++){
         r[i]=out_r[i];
     }
-    delete grad; delete out_r; delete diag_A0; 
+    delete grad; delete out_r; delete diag_A0; delete Lipschitz;
     //mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of RBCD size 2.cpp\n",epoch-1,residual);
 }
