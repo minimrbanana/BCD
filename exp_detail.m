@@ -272,12 +272,9 @@ switch exp_idx
     case 200
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,3/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,3/d,EV);
+        EXP.A = sparse(A);
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -286,12 +283,15 @@ switch exp_idx
     case 201
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,5/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+%         A = sprandsym(d,5/d,0.5,1);
+%         A = spdiags(zeros(d,1),0,A);
+%         A = -A./(A+eps);
+%         diagonal = -sum(A);
+%         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+%         EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,5/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -300,12 +300,9 @@ switch exp_idx
     case 202
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,7/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,7/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -314,12 +311,9 @@ switch exp_idx
     case 203
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,9/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,9/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -328,12 +322,9 @@ switch exp_idx
     case 204
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,11/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,11/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -342,12 +333,9 @@ switch exp_idx
     case 205
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,13/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,13/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -356,12 +344,9 @@ switch exp_idx
     case 206
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,15/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,15/d,EV);
+        EXP.A = A;
         EXP.d = d;
         EXP.n_loop = 100;
         EXP.isplot = 0;
@@ -370,18 +355,39 @@ switch exp_idx
     case 207
         % A is a random symmetric matrix 
         d = 5000; 
-        A = sprandsym(d,17/d,0.5,1);
-        A = spdiags(zeros(d,1),0,A);
-        A = -A./(A+eps);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,17/d,EV);
+        EXP.A = A;
         % not clear why the precision cannot reach 1E-13
         EXP.d = d;
-        EXP.n_loop = 1;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
-        EXP.save = 1;         
+        EXP.save = 1;
+    case 208
+        % A is a random symmetric matrix 
+        d = 5000; 
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,30/d,EV);
+        EXP.A = A;
+        % not clear why the precision cannot reach 1E-13
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 209
+        % A is a random symmetric matrix 
+        d = 5000; 
+        EV=(1:d)/sqrt(d);
+        A = sprandsym(d,40/d,EV);
+        EXP.A = A;
+        % not clear why the precision cannot reach 1E-13
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
     case 900
         % A has only one off-entry 
         % which means after reordering, there is only one size2 block
