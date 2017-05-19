@@ -194,7 +194,7 @@ switch exp_idx
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 10
-        % A has block size5 on the diagonal
+        % A has block size4 on the diagonal with shift
         d = 5000;
         e0 = [0;1;1;1];
         e1 = e0(:,ones(ceil(d/4),1));
@@ -207,6 +207,30 @@ switch exp_idx
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 11
+        % A has block size4 on the diagonal WITH noise
+        d = 5000;
+        e0 = [1;1;1;0];
+        e1 = e0(:,ones(ceil(d/4),1));
+        e1 = reshape(e1 ,numel(e1),1);
+        e0 = [1;1;0;0];
+        e2 = e0(:,ones(ceil(d/4),1));
+        e2 = reshape(e2 ,numel(e2),1);
+        e0 = [1;0;0;0];
+        e3 = e0(:,ones(ceil(d/4),1));
+        e3 = reshape(e3 ,numel(e3),1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
+            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
         diagonal = -sum(A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
