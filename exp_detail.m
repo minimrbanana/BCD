@@ -293,6 +293,36 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    case 104
+        % A is a 5-band matrix without noise
+        d = 5000; 
+        e1 = ones(d,1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e1,-e1,-e1,-e1],[-2,-1,1,2],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 1;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 105
+        % A is a 7-band matrix without noise
+        d = 5000; 
+        e1 = ones(d,1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 1;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
     case 200
         % A is a random symmetric matrix 
         d = 5000; 
@@ -300,7 +330,7 @@ switch exp_idx
         A = sprandsym(d,3/d,EV);
         EXP.A = sparse(A);
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -317,7 +347,7 @@ switch exp_idx
         A = sprandsym(d,5/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -328,7 +358,7 @@ switch exp_idx
         A = sprandsym(d,7/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -339,7 +369,7 @@ switch exp_idx
         A = sprandsym(d,9/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop = 2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -350,7 +380,7 @@ switch exp_idx
         A = sprandsym(d,11/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;    
@@ -361,7 +391,7 @@ switch exp_idx
         A = sprandsym(d,13/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
@@ -372,7 +402,7 @@ switch exp_idx
         A = sprandsym(d,15/d,EV);
         EXP.A = A;
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;  
@@ -384,7 +414,7 @@ switch exp_idx
         EXP.A = A;
         % not clear why the precision cannot reach 1E-13
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -396,7 +426,7 @@ switch exp_idx
         EXP.A = A;
         % not clear why the precision cannot reach 1E-13
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -408,7 +438,7 @@ switch exp_idx
         EXP.A = A;
         % not clear why the precision cannot reach 1E-13
         EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
