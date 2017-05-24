@@ -3,7 +3,12 @@ function plot4EXP(idx,EXP)
 % if EXP is given, as called in the main_exp function, use it, 
 % else as called alone, load EXP from the 'result' folder
 close all;
-saveDir = ['./result/EXP_idx_' num2str(idx) '/'];
+% dir to save the plots
+saveDir = ['./img/EXP_idx_' num2str(idx) '/'];
+if ~exist(saveDir,'dir')
+    mkdir(saveDir);
+end
+
 if nargin ==1
     dir = ['./result/EXP_idx_' num2str(idx) '/EXP.mat'];
     load(dir);

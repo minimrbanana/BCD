@@ -239,6 +239,62 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    case 12
+        % IMPORTANT
+        % same with No. 11, BUT reordering function is 
+        % colperm
+        % this must be changed in the main function
+        % A has block size4 on the diagonal WITH noise
+        d = 5000;
+        e0 = [1;1;1;0];
+        e1 = e0(:,ones(ceil(d/4),1));
+        e1 = reshape(e1 ,numel(e1),1);
+        e0 = [1;1;0;0];
+        e2 = e0(:,ones(ceil(d/4),1));
+        e2 = reshape(e2 ,numel(e2),1);
+        e0 = [1;0;0;0];
+        e3 = e0(:,ones(ceil(d/4),1));
+        e3 = reshape(e3 ,numel(e3),1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
+            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 13
+        % IMPORTANT
+        % same with No. 11, BUT reordering function is 
+        % symamd
+        % this must be changed in the main function
+        % A has block size4 on the diagonal WITH noise
+        d = 5000;
+        e0 = [1;1;1;0];
+        e1 = e0(:,ones(ceil(d/4),1));
+        e1 = reshape(e1 ,numel(e1),1);
+        e0 = [1;1;0;0];
+        e2 = e0(:,ones(ceil(d/4),1));
+        e2 = reshape(e2 ,numel(e2),1);
+        e0 = [1;0;0;0];
+        e3 = e0(:,ones(ceil(d/4),1));
+        e3 = reshape(e3 ,numel(e3),1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
+            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
     case 100
         % A is a tri-diagonal matrix without noise
         d = 5000; 
@@ -304,7 +360,7 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 1;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -319,7 +375,45 @@ switch exp_idx
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 1;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 106
+        % IMPORTANT
+        % same with No. 105, BUT reordering function is 
+        % colperm
+        % this must be changed in the main function
+        % A is a 7-band matrix without noise
+        d = 5000; 
+        e1 = ones(d,1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 100;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 107
+        % IMPORTANT
+        % same with No. 105, BUT reordering function is 
+        % colperm
+        % this must be changed in the main function
+        % A is a 7-band matrix without noise
+        d = 5000; 
+        e1 = ones(d,1);
+        A = sprandsym(d,3/d,0.5,1);
+        A_off = -A./(A+eps);
+        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
+        diagonal = -sum(A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,A);
+        EXP.d = d;
+        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
