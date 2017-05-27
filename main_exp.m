@@ -77,9 +77,9 @@ for loop=1:EXP.n_loop
     [~, kkt1a]  = CBCD_size1_gc(EXP.A, b, d, iters,pre,l,u,x0);
     [~, kkt2a]  = CBCD_size2_gc(EXP.A, b, d, iters,pre,l,u,x0);
     [~, kkt3a]  = CBCD_size3_gc(EXP.A, b, d, iters,pre,l,u,x0);
-    [~, kktr1a] = RBCD_size1_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2a] = RBCD_size2_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3a] = RBCD_size3_gc(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kktr1a] = RBCD_size1_gc_u(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2a] = RBCD_size2_gc_u(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3a] = RBCD_size3_gc_u(EXP.A, b, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix A
@@ -102,19 +102,19 @@ for loop=1:EXP.n_loop
             fprintf('Runtime : %.4f seconds.   ',T_c(3,loop));
             fprintf('#epochs : %d \n',length(kkt3a)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(1,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(1,loop));
             fprintf('#epochs : %d \n',length(kktr1a)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(2,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(2,loop));
             fprintf('#epochs : %d \n',length(kktr2a)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(3,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(3,loop));
@@ -150,9 +150,9 @@ for loop=1:EXP.n_loop
     [~, kkt1b]  = CBCD_size1_gc(B, Bb, d, iters,pre,l,u,x0);
     [~, kkt2b]  = CBCD_size2_gc(B, Bb, d, iters,pre,l,u,x0);
     [~, kkt3b]  = CBCD_size3_gc(B, Bb, d, iters,pre,l,u,x0);
-    [~, kktr1b] = RBCD_size1_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2b] = RBCD_size2_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3b] = RBCD_size3_gc(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr1b] = RBCD_size1_gc_u(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2b] = RBCD_size2_gc_u(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3b] = RBCD_size3_gc_u(B, Bb, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix B
@@ -175,19 +175,19 @@ for loop=1:EXP.n_loop
             fprintf('Runtime : %.4f seconds.   ',T_c(6,loop));
             fprintf('#epochs : %d \n',length(kkt3b)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(4,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(4,loop));
             fprintf('#epochs : %d \n',length(kktr1b)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(5,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(5,loop));
             fprintf('#epochs : %d \n',length(kktr2b)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(6,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(6,loop));
@@ -223,9 +223,9 @@ for loop=1:EXP.n_loop
     [~, kkt1c]  = CBCD_size1_gc(C, Cb, d, iters,pre,l,u,x0);
     [~, kkt2c]  = CBCD_size2_gc(C, Cb, d, iters,pre,l,u,x0);
     [~, kkt3c]  = CBCD_size3_gc(C, Cb, d, iters,pre,l,u,x0);
-    [~, kktr1c] = RBCD_size1_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2c] = RBCD_size2_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3c] = RBCD_size3_gc(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr1c] = RBCD_size1_gc_u(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr2c] = RBCD_size2_gc_u(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kktr3c] = RBCD_size3_gc_u(C, Cb, d, iters,pre,l,u,x0,alpha);
     p=profile('info');
     profile off;
     % save time for matrix C
@@ -248,19 +248,19 @@ for loop=1:EXP.n_loop
             fprintf('Runtime : %.4f seconds.   ',T_c(9,loop));
             fprintf('#epochs : %d \n',length(kkt3c)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size1_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(7,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(7,loop));
             fprintf('#epochs : %d \n',length(kktr1c)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size2_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(8,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(8,loop));
             fprintf('#epochs : %d \n',length(kktr2c)-1);
         end
-        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc')
+        if strcmp(p.FunctionTable(i,1).FunctionName , 'RBCD_size3_gc_u')
             fprintf('Function: %s\n',p.FunctionTable(i,1).FunctionName);
             T_r(9,loop)= p.FunctionTable(i,1).TotalTime;
             fprintf('Runtime : %.4f seconds.   ',T_r(9,loop));

@@ -14,7 +14,7 @@ EXP.save = 0;
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
 EXP.max_iter = 200000;  
 % number of loops
-EXP.n_loop = 10;
+EXP.n_loop = 1000;
 % precision
 EXP.precision = 1E-10;
 % the bounds and initial state and alpha in RBCD
@@ -342,6 +342,9 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    otherwise
+        error('index not defined');
+        
 end
 EXP.output_dir = ['./result/EXP_idx_' num2str(EXP.idx) '/'];
 if ~exist(EXP.output_dir,'dir')
