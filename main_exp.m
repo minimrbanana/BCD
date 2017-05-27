@@ -12,15 +12,19 @@ u=EXP.upper;
 x0=EXP.init;
 alpha =EXP.alpha;
 pre = EXP.precision;
+% if EXP.A exists, which means A is not random
 % do permutation on A, we get B, reordering on B we get C
-perm = randperm(EXP.d);
-B = EXP.A(perm,perm);
-% reordering and estimate its run time
-tstart = tic;
-reod = symrcm(B);
-C = B(reod,reod);
-EXP.tRCM = toc(tstart);
-
+if exist('EXP.A','var')
+    perm = randperm(EXP.d);
+    B = EXP.A(perm,perm);
+    % reordering and estimate its run time
+    tstart = tic;
+    reod = symrcm(B);
+    C = B(reod,reod);
+    tRCM = toc(tstart);
+else
+    tRCM=zeros(EXP.n_loop,1);
+end
 % create variables for saving the results
 % save runtime
 T_c = zeros(9,EXP.n_loop);
@@ -51,6 +55,16 @@ epoch2r = zeros(3*EXP.n_loop,1);
 epoch3r = zeros(3*EXP.n_loop,1);
 %% loop to average the cenvergence
 for loop=1:EXP.n_loop
+    if ~exist('EXP.A','var')
+        EXP.A = MyMatA(eidx,EXP.d);
+        perm = randperm(EXP.d);
+        B = EXP.A(perm,perm);
+        % reordering and estimate its run time
+        tstart = tic;
+        reod = symrcm(B);
+        C = B(reod,reod);
+        tRCM(loop) = toc(tstart);
+    end
     b = randn(EXP.d,1);
     Bb= b(perm);
     Cb = Bb(reod);
@@ -324,6 +338,7 @@ EXP.epoch3 = epoch3;
 EXP.epoch1r = epoch1r;
 EXP.epoch2r = epoch2r;
 EXP.epoch3r = epoch3r;
+EXP.tRCM=mean(tRCM);
 % to save EXP
 if EXP.save==1
     save([EXP.output_dir 'EXP.mat'],'EXP');

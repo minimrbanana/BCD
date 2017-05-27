@@ -13,6 +13,8 @@ EXP.save = 0;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
 EXP.max_iter = 200000;  
+% number of loops
+EXP.n_loop = 10;
 % precision
 EXP.precision = 1E-10;
 % the bounds and initial state and alpha in RBCD
@@ -30,11 +32,10 @@ switch exp_idx
         e1 = e0(:,ones(ceil(d/2),1));
         e1 = reshape(e1 ,numel(e1),1);
         A = spdiags([-e1,-[0;e1(1:end-1)]],[-1,1],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -45,48 +46,25 @@ switch exp_idx
         e1 = e0(:,ones(ceil(d/2),1));
         e1 = reshape(e1 ,numel(e1),1);
         A = spdiags([-e1,-[0;e1(1:end-1)]],[-1,1],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.A(1,1)=1;EXP.A(d,d)=1;
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 3
         % A has block size2 on the diagonal
         % with noise off the diagonal
-        d = 5000;
-        e0 = [1;0];
-        e1 = e0(:,ones(ceil(d/2),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,e1*0,-[0;e1(1:end-1)]],[-1,0,1],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 4
         % A has block size2 on the diagonal with shift
         % with noise off the diagonal
-        d = 5000;
-        e0 = [0;1]; % change from [0,1] to [1,0] as shift
-        e1 = e0(:,ones(ceil(d/2),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,e1*0,-[0;e1(1:end-1)]],[-1,0,1],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -101,11 +79,10 @@ switch exp_idx
         e2 = reshape(e2 ,numel(e2),1);
         A = spdiags([-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
             [-2,-1,1,2],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -119,55 +96,24 @@ switch exp_idx
         e2 = e0(:,ones(ceil(d/3),1));
         e2 = reshape(e2 ,numel(e2),1);
         A = spdiags([-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],[-2,-1,1,2],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
     case 7
         % A has block size3 on the diagonal
         % with noise off the diagonal
-        d = 5000;
-        e0 = [1;1;0];
-        e1 = e0(:,ones(ceil(d/3),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        e0 = [1;0;0];
-        e2 = e0(:,ones(ceil(d/3),1));
-        e2 = reshape(e2 ,numel(e2),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e2,-e1,e1*0,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
-            [-2,-1,0,1,2],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 8
         % A has block size3 on the diagonal with shift
         % with noise off the diagonal
-        d = 5000;
-        e0 = [0;1;1];
-        e1 = e0(:,ones(ceil(d/3),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        e0 = [0;1;0];
-        e2 = e0(:,ones(ceil(d/3),1));
-        e2 = reshape(e2 ,numel(e2),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e2,-e1,e1*0,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
-            [-2,-1,0,1,2],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -185,11 +131,10 @@ switch exp_idx
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -207,91 +152,16 @@ switch exp_idx
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(A);
+        diagonal = -sum(A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 11
         % A has block size4 on the diagonal WITH noise
-        d = 5000;
-        e0 = [1;1;1;0];
-        e1 = e0(:,ones(ceil(d/4),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        e0 = [1;1;0;0];
-        e2 = e0(:,ones(ceil(d/4),1));
-        e2 = reshape(e2 ,numel(e2),1);
-        e0 = [1;0;0;0];
-        e3 = e0(:,ones(ceil(d/4),1));
-        e3 = reshape(e3 ,numel(e3),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
-            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
-        EXP.isplot = 0;
-        EXP.plot_convergence = 1;
-        EXP.save = 1;
-    case 12
-        % IMPORTANT
-        % same with No. 11, BUT reordering function is 
-        % colperm
-        % this must be changed in the main function
-        % A has block size4 on the diagonal WITH noise
-        d = 5000;
-        e0 = [1;1;1;0];
-        e1 = e0(:,ones(ceil(d/4),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        e0 = [1;1;0;0];
-        e2 = e0(:,ones(ceil(d/4),1));
-        e2 = reshape(e2 ,numel(e2),1);
-        e0 = [1;0;0;0];
-        e3 = e0(:,ones(ceil(d/4),1));
-        e3 = reshape(e3 ,numel(e3),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
-            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
-        EXP.isplot = 0;
-        EXP.plot_convergence = 1;
-        EXP.save = 1;
-    case 13
-        % IMPORTANT
-        % same with No. 11, BUT reordering function is 
-        % symamd
-        % this must be changed in the main function
-        % A has block size4 on the diagonal WITH noise
-        d = 5000;
-        e0 = [1;1;1;0];
-        e1 = e0(:,ones(ceil(d/4),1));
-        e1 = reshape(e1 ,numel(e1),1);
-        e0 = [1;1;0;0];
-        e2 = e0(:,ones(ceil(d/4),1));
-        e2 = reshape(e2 ,numel(e2),1);
-        e0 = [1;0;0;0];
-        e3 = e0(:,ones(ceil(d/4),1));
-        e3 = reshape(e3 ,numel(e3),1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
-            -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -300,11 +170,10 @@ switch exp_idx
         d = 5000; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1],[-1,1],d,d);
-        diagonal = -sum(EXP.A);
+        diagonal = -sum(EXP.A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -313,226 +182,113 @@ switch exp_idx
         d = 5000; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1,-e1,-e1],[-2,-1,1,2],d,d);
-        diagonal = -sum(EXP.A);
+        diagonal = -sum(EXP.A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 102
         % A is a 7-band matrix without noise
-        d = 5000; 
+        d = 50; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(EXP.A);
+        diagonal = -sum(EXP.A)*1.1;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         EXP.A = spdiags(diagonal',0,EXP.A);
         EXP.d = d;
-        EXP.n_loop = 100;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 103
         % A is a tri-diagonal matrix WITH noise
-        d = 5000; 
-        e1 = ones(d,1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,e1*0,-e1],[-1,0,1],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 104
-        % A is a 5-band matrix without noise
-        d = 5000; 
-        e1 = ones(d,1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,-e1,-e1,-e1],[-2,-1,1,2],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        % A is a 5-band matrix WITH noise
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 105
-        % A is a 7-band matrix without noise
-        d = 5000; 
-        e1 = ones(d,1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
-        EXP.isplot = 0;
-        EXP.plot_convergence = 1;
-        EXP.save = 1;
-    case 106
-        % IMPORTANT
-        % same with No. 105, BUT reordering function is 
-        % colperm
-        % this must be changed in the main function
-        % A is a 7-band matrix without noise
-        d = 5000; 
-        e1 = ones(d,1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
-        EXP.isplot = 0;
-        EXP.plot_convergence = 1;
-        EXP.save = 1;
-    case 107
-        % IMPORTANT
-        % same with No. 105, BUT reordering function is 
-        % colperm
-        % this must be changed in the main function
-        % A is a 7-band matrix without noise
-        d = 5000; 
-        e1 = ones(d,1);
-        A = sprandsym(d,3/d,0.5,1);
-        A_off = -A./(A+eps);
-        A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A);
-        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        % A is a 7-band matrix WITH noise
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 200
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,3/d,EV);
-        EXP.A = sparse(A);
-        EXP.d = d;
-        EXP.n_loop = 2000;
+        % sparsity 3/d
+        EXP.d = 5000; 
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 201
         % A is a random symmetric matrix 
-        d = 5000; 
-%         A = sprandsym(d,5/d,0.5,1);
-%         A = spdiags(zeros(d,1),0,A);
-%         A = -A./(A+eps);
-%         diagonal = -sum(A);
-%         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-%         EXP.A = spdiags(diagonal',0,A);
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,5/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop = 2000;
+        % sparsity 5/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 202
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,7/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop = 2000;
+        % sparsity 7/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 203
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,9/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop = 2000;
+        % sparsity 9/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 204
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,11/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop =  2000;
+        % sparsity 11/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;    
     case 205
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,13/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop =  2000;
+        % sparsity 13/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
     case 206
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,15/d,EV);
-        EXP.A = A;
-        EXP.d = d;
-        EXP.n_loop =  2000;
+        % sparsity 15/d
+        EXP.d = 5000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;  
     case 207
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,17/d,EV);
-        EXP.A = A;
+        % sparsity 17/d
+        EXP.d = 5000;
         % not clear why the precision cannot reach 1E-13
-        EXP.d = d;
-        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 208
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,30/d,EV);
-        EXP.A = A;
+        % sparsity 30/d
+        EXP.d = 5000;
         % not clear why the precision cannot reach 1E-13
-        EXP.d = d;
-        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
     case 209
         % A is a random symmetric matrix 
-        d = 5000; 
-        EV=(1:d)/sqrt(d);
-        A = sprandsym(d,40/d,EV);
-        EXP.A = A;
+        % sparsity 40/d
+        EXP.d = 5000;
         % not clear why the precision cannot reach 1E-13
-        EXP.d = d;
-        EXP.n_loop =  2000;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -567,7 +323,6 @@ switch exp_idx
         A = A + diag(ones(d,1)*(1-c));
         EXP.A = sparse(A);
         EXP.d = d;
-        EXP.n_loop = 100;
         % for the worst case the interval must be larger.
         % here we take [-10,10]
         EXP.lower = -10;
@@ -578,15 +333,7 @@ switch exp_idx
         EXP.save = 1;
     case 903
         % worst case paper Ac with some rotation
-        d = 100;
-        c = 0.8;
-        A = ones(d,d)*c;
-        A = A + diag(ones(d,1)*(1-c));
-        [U,~,~] = svd(1-2*rand(d,d));
-        A = U'*A*U;
-        EXP.A = sparse(A);
-        EXP.d = d;
-        EXP.n_loop = 100;
+        EXP.d = 100;
         % for the worst case the interval must be larger.
         % here we take [-10,10]
         EXP.lower = -10;
