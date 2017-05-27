@@ -22,8 +22,10 @@ if exist('EXP.A','var')
     reod = symrcm(B);
     C = B(reod,reod);
     tRCM = toc(tstart);
+    runMyMatA=0;
 else
     tRCM=zeros(EXP.n_loop,1);
+    runMyMatA=1;
 end
 % create variables for saving the results
 % save runtime
@@ -55,7 +57,7 @@ epoch2r = zeros(3*EXP.n_loop,1);
 epoch3r = zeros(3*EXP.n_loop,1);
 %% loop to average the cenvergence
 for loop=1:EXP.n_loop
-    if ~exist('EXP.A','var')
+    if runMyMatA==1
         EXP.A = MyMatA(eidx,EXP.d);
         perm = randperm(EXP.d);
         B = EXP.A(perm,perm);
