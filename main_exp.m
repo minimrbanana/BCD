@@ -14,7 +14,7 @@ alpha =EXP.alpha;
 pre = EXP.precision;
 % if EXP.A exists, which means A is not random
 % do permutation on A, we get B, reordering on B we get C
-if exist('EXP.A','var')
+if isfield(EXP,'A')
     perm = randperm(EXP.d);
     B = EXP.A(perm,perm);
     % reordering and estimate its run time
