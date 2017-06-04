@@ -1,5 +1,7 @@
 function A = MyMatA(eidx, d)
 
+lambda=1E-6;
+
 switch eidx
     case 1
         error('matrix A is defined!');
@@ -14,7 +16,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A_off = -A./(A+eps);
         A = spdiags([-e1,e1*0,-[0;e1(1:end-1)]],[-1,0,1],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 4
@@ -26,7 +28,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A_off = -A./(A+eps);
         A = spdiags([-e1,e1*0,-[0;e1(1:end-1)]],[-1,0,1],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 5
@@ -46,7 +48,7 @@ switch eidx
         A_off = -A./(A+eps);
         A = spdiags([-e2,-e1,e1*0,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
             [-2,-1,0,1,2],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 8
@@ -62,7 +64,7 @@ switch eidx
         A_off = -A./(A+eps);
         A = spdiags([-e2,-e1,e1*0,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
             [-2,-1,0,1,2],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 9
@@ -84,7 +86,7 @@ switch eidx
         A_off = -A./(A+eps);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 100
@@ -99,7 +101,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A_off = -A./(A+eps);
         A = spdiags([-e1,e1*0,-e1],[-1,0,1],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 104
@@ -108,7 +110,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A_off = -A./(A+eps);
         A = spdiags([-e1,-e1,-e1,-e1],[-2,-1,1,2],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A); 
     case 105
@@ -117,7 +119,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A_off = -A./(A+eps);
         A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],A_off);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);          
     case 200
@@ -126,7 +128,7 @@ switch eidx
         A = sprandsym(d,3/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 201
@@ -135,7 +137,7 @@ switch eidx
         A = sprandsym(d,5/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 202
@@ -144,7 +146,7 @@ switch eidx
         A = sprandsym(d,7/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 203
@@ -153,7 +155,7 @@ switch eidx
         A = sprandsym(d,9/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 204
@@ -162,7 +164,7 @@ switch eidx
         A = sprandsym(d,11/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 205
@@ -171,7 +173,7 @@ switch eidx
         A = sprandsym(d,13/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 206
@@ -180,7 +182,7 @@ switch eidx
         A = sprandsym(d,15/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 207
@@ -189,7 +191,7 @@ switch eidx
         A = sprandsym(d,17/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 208
@@ -198,7 +200,7 @@ switch eidx
         A = sprandsym(d,30/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 209
@@ -207,7 +209,7 @@ switch eidx
         A = sprandsym(d,40/d,0.5,1);
         A = spdiags(zeros(d,1),0,A);
         A = -A./(A+eps);
-        diagonal = -sum(A)*1.1;
+        diagonal = -sum(A)+lambda;
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
         A = spdiags(diagonal',0,A);
     case 900

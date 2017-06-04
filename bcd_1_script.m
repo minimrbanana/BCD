@@ -3,18 +3,16 @@
 %% input
 %rng(1);
 % dimension and constraints
-d = 100;
+d = 10;
 %lower = zeros(d,1);
 %upper = ones(d,1);
 % A and b
 
-% e1 = ones(d,1);
-% A = spdiags([-e1,-e1],[-1,1],d,d);
-% diagonal = -sum(A);
-% diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-% A = spdiags(diagonal',0,A);
-RC=1:0.1:10.9;
-A = sprandsym(d,5/d,RC);
+e1 = ones(d,1);
+A = spdiags([-e1,-e1],[-1,1],d,d);
+diagonal = -sum(A)-1E-6;
+diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+A = spdiags(diagonal',0,A);
 
 % A(5,5)=100;
 
@@ -25,13 +23,13 @@ A = sprandsym(d,5/d,RC);
 %A = sparse(A);
 % b = zeros(d,1);
 %rng(1);
-b = [randn(d,1)];
+b = randn(d,1);
 %% solution by dense implementation
 % solution by x=b\A
 y1=0;y2=0;y3=0;y4=0;y5=0;y6=0;y7=0;y8=0;
 % solution by Gauss Seidel Method
 % omitted
-iters = 2000;
+iters = 200000;
 % solution by CBCD with block size 1
 %[x1,y1] = CBCD_size1(A, b, d, lower, upper, iters);
 
@@ -46,7 +44,7 @@ iters = 2000;
  %[x3, y3] = CBCD_size3_gc(A, b, d, iters,1E-2,2,1,1);
 [rx3, ry3] = RBCD_size3_gc_u(A, b, d, iters,1E-5,0,1,0,1.0);
 [rx2, ry2] = RBCD_size2_gc_u(A, b, d, iters,1E-5,0,1,0,1.0);
-[rx1, ry1] = RBCD_size2_gc(A, b, d, iters,1E-5,0,1,0,1.0);
+[rx1, ry1] = RBCD3(A, b, d, iters,1E-5,0,1,0,1.0);
 
 % [x1, y1] = CBCD_size1_fx(A, b, d, iters,1E-5,-1,1,0);
 % [x2, y2] = CBCD_size2_fx(A, b, d, iters,1E-5,-1,1,0);
