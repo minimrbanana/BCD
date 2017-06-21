@@ -9,12 +9,12 @@ EXP.idx = exp_idx;
 % default paras
 EXP.isplot = 0;  % plot matrix A,B & C 
 EXP.plot_convergence = 0; % plot the averaged convergence
-EXP.save = 0;
+EXP.save = 1;
 % max number of iters, should not set too large, 
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
-EXP.max_iter = 200000;  
+EXP.max_iter = 2000000;  
 % number of loops
-EXP.n_loop = 1000;
+EXP.n_loop = 100;
 % precision
 EXP.precision = 1E-10;
 % the bounds and initial state and alpha in RBCD
@@ -33,9 +33,9 @@ switch exp_idx
         e1 = e0(:,ones(ceil(d/2),1));
         e1 = reshape(e1 ,numel(e1),1);
         A = spdiags([-e1,-[0;e1(1:end-1)]],[-1,1],d,d);
-        diagonal = -sum(A)+lambda;% in order to make matrix A positive
+        diagonal = -sum(A);% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -47,9 +47,9 @@ switch exp_idx
         e1 = e0(:,ones(ceil(d/2),1));
         e1 = reshape(e1 ,numel(e1),1);
         A = spdiags([-e1,-[0;e1(1:end-1)]],[-1,1],d,d);
-        diagonal = -sum(A)+lambda;% in order to make matrix A positive
+        diagonal = -sum(A);% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.A(1,1)=1;EXP.A(d,d)=1;
         EXP.d = d;
         EXP.isplot = 0;
@@ -80,9 +80,9 @@ switch exp_idx
         e2 = reshape(e2 ,numel(e2),1);
         A = spdiags([-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],...
             [-2,-1,1,2],d,d);
-        diagonal = -sum(A)+lambda;% in order to make matrix A positive
+        diagonal = -sum(A);% in order to make matrix A positive
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -97,9 +97,9 @@ switch exp_idx
         e2 = e0(:,ones(ceil(d/3),1));
         e2 = reshape(e2 ,numel(e2),1);
         A = spdiags([-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)]],[-2,-1,1,2],d,d);
-        diagonal = -sum(A)+lambda;
+        diagonal = -sum(A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -132,9 +132,9 @@ switch exp_idx
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(A)+lambda;
+        diagonal = -sum(A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -153,9 +153,9 @@ switch exp_idx
         e3 = reshape(e3 ,numel(e3),1);
         A = spdiags([-e3,-e2,-e1,-[0;e1(1:end-1)],-[0;0;e2(1:end-2)],...
             -[0;0;0;e3(1:end-3)]],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(A)+lambda;
+        diagonal = -sum(A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,A);
+        EXP.A = spdiags(diagonal'+lambda,0,A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -171,9 +171,9 @@ switch exp_idx
         d = 5000; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1],[-1,1],d,d);
-        diagonal = -sum(EXP.A)+lambda;
+        diagonal = -sum(EXP.A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,EXP.A);
+        EXP.A = spdiags(diagonal'+lambda,0,EXP.A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -183,9 +183,9 @@ switch exp_idx
         d = 5000; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1,-e1,-e1],[-2,-1,1,2],d,d);
-        diagonal = -sum(EXP.A)+lambda;
+        diagonal = -sum(EXP.A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,EXP.A);
+        EXP.A = spdiags(diagonal'+lambda,0,EXP.A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -195,9 +195,9 @@ switch exp_idx
         d = 50; 
         e1 = ones(d,1);
         EXP.A = spdiags([-e1,-e1,-e1,-e1,-e1,-e1],[-3,-2,-1,1,2,3],d,d);
-        diagonal = -sum(EXP.A)+lambda;
+        diagonal = -sum(EXP.A);
         diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
-        EXP.A = spdiags(diagonal',0,EXP.A);
+        EXP.A = spdiags(diagonal'+lambda,0,EXP.A);
         EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
@@ -217,6 +217,34 @@ switch exp_idx
     case 105
         % A is a 7-band matrix WITH noise
         EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 106
+        % A is a tri-diagonal matrix without noise
+        % same with 100 but init is 1
+        EXP.init=1;
+        d = 5000; 
+        e1 = ones(d,1);
+        EXP.A = spdiags([-e1,-e1],[-1,1],d,d);
+        diagonal = -sum(EXP.A)+lambda;
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,EXP.A);
+        EXP.d = d;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 107
+        % A is a tri-diagonal matrix without noise
+        % same with 100 but init is 0.5
+        EXP.init=0.5;
+        d = 5000; 
+        e1 = ones(d,1);
+        EXP.A = spdiags([-e1,-e1],[-1,1],d,d);
+        diagonal = -sum(EXP.A)+lambda;
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal',0,EXP.A);
+        EXP.d = d;
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
@@ -293,6 +321,132 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    case 300
+        % A is a random symmetric matrix 
+        % sparsity 3/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000; 
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 301
+        % A is a random symmetric matrix 
+        % sparsity 5/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 302
+        % A is a random symmetric matrix 
+        % sparsity 7/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 303
+        % A is a random symmetric matrix 
+        % sparsity 9/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 304
+        % A is a random symmetric matrix 
+        % sparsity 11/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;    
+    case 305
+        % A is a random symmetric matrix 
+        % sparsity 13/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1; 
+    case 306
+        % A is a random symmetric matrix 
+        % sparsity 15/d
+        % same with 20X but init is 0.5
+        EXP.init=0.5;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;  
+    case 400
+        % A is a random symmetric matrix 
+        % sparsity 3/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000; 
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 401
+        % A is a random symmetric matrix 
+        % sparsity 5/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 402
+        % A is a random symmetric matrix 
+        % sparsity 7/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 403
+        % A is a random symmetric matrix 
+        % sparsity 9/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+    case 404
+        % A is a random symmetric matrix 
+        % sparsity 11/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;    
+    case 405
+        % A is a random symmetric matrix 
+        % sparsity 13/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1; 
+    case 406
+        % A is a random symmetric matrix 
+        % sparsity 15/d
+        % same with 20X but init is 1
+        EXP.init=1;
+        EXP.d = 5000;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;  
     case 900
         % A has only one off-entry 
         % which means after reordering, there is only one size2 block

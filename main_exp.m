@@ -80,11 +80,12 @@ for loop=1:EXP.n_loop
     [~, kktr1a] = RBCD_size1_gc_u(EXP.A, b, d, iters,pre,l,u,x0,alpha);
     [~, kktr2a] = RBCD2(EXP.A, b, d, iters,pre,l,u,x0,alpha);
     [~, kktr3a] = RBCD3(EXP.A, b, d, iters,pre,l,u,x0,alpha);
-    if length(kkt1a)>iters-2
-        save('A.mat','EXP','b');
-    end
     p=profile('info');
     profile off;
+    if length(kkt1a)>iters-2
+        A=EXP.A;
+        save([EXP.output_dir 'A.mat'],'A','b');
+    end    
     % save time for matrix A
     for i=1:size(p.FunctionTable,1)
         if strcmp(p.FunctionTable(i,1).FunctionName , 'CBCD_size1_gc')

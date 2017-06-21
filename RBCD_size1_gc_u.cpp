@@ -4,6 +4,7 @@
 /**
  * RBCD size 1 with general constraints
  **/
+
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     /** input args
@@ -31,9 +32,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // [2]
     double *in_b;
     // [3]
-    int in_d;
+    long int in_d;
     // [4]
-    int in_max_iter;
+    long int in_max_iter;
     // [5]
     double in_precision;
     // [6]
@@ -55,7 +56,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // [2]
     double residual;
     // parameters in the function
-    int i,j,epoch;//loop
+    long int i,j,epoch;//loop
     double df;
     double RV;//random variable for RBCD
     // get input args
@@ -66,11 +67,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // [2]
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
     // [3]
-    in_d = mxGetScalar(prhs[2]);if(in_d==NULL){mexErrMsgTxt("pointer in_d is null");  return;}
+    in_d = mxGetScalar(prhs[2]);if(in_d<=1){mexErrMsgTxt("pointer in_d is null");  return;}
     // [4]
-    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("max_iter can not be 0");  return;}
+    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter<=0){mexErrMsgTxt("max_iter can not be 0");  return;}
     // [5]
-    in_precision = mxGetScalar(prhs[4]);if(in_max_iter==NULL){mexErrMsgTxt("precisionr can not be 0");  return;}
+    in_precision = mxGetScalar(prhs[4]);if(in_max_iter<=0){mexErrMsgTxt("precisionr can not be 0");  return;}
     // [6]
     lower = mxGetScalar(prhs[5]);
     // [7]
@@ -90,8 +91,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * lengths of in_A and irs are both NZmax
      * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
     */
-    int NZmax = jcs[in_d];
-    mexPrintf("RBCD size 1.cpp...Sparsity = %.5f.\n",NZmax/double((in_d*in_d)));
+    double sparsity = jcs[in_d]/double(in_d*in_d);
+    mexPrintf("RBCD size 1.cpp...Sparsity = %.5f.\n",sparsity);
     // [1] allocate output, and init as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
@@ -169,7 +170,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (lower<upper){
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
-            for (int loop_number=0;loop_number<in_d;loop_number++){
+            for (long int loop_number=0;loop_number<in_d;loop_number++){
                 // get the random index i, in the range of [0,in_d-1]
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=RV*(in_d);
@@ -237,7 +238,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     else if (lower>=upper){
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             // KKT condition is calculated every in_d/2 updates, i.e. one epoch
-            for (int loop_number=0;loop_number<in_d;loop_number++){
+            for (long int loop_number=0;loop_number<in_d;loop_number++){
                 // get the random index i, in the range of [0,in_d-1]
                 RV = ((double)rand())/((double)RAND_MAX+1.0);
                 i=RV*(in_d);

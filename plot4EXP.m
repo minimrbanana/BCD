@@ -155,7 +155,7 @@ l9r=sprintf('RBCD3r,   %.4f s, #%d',mean(EXP.T_r(9,:)),...
 legend(l7,l8,l9,l7r,l8r,l9r);
 set(gca,'fontsize',14);
 xlabel('#epoch');ylabel('KKT Condition');
-RCMstr = sprintf(';RCM=%.4fs',EXP.tRCM);
+RCMstr = sprintf(';Reorder=%.4fs',EXP.tRCM);
 title(['Convergence Speed C; #' num2str(idx) '-#' num2str(index) RCMstr]);
 saveas(gca,[saveDir 'figure6.png']);
 

@@ -31,9 +31,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // [2]
     double *in_b;
     // [3]
-    int in_d;
+    long int in_d;
     // [4]
-    int in_max_iter;
+    long int in_max_iter;
     // [5]
     double in_precision;
     // [6]
@@ -53,7 +53,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // [2]
     double residual;
     // parameters in the function
-    int i,j,epoch;//loop
+    long int i,j,epoch;//loop
     double df;
     // get input args
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
@@ -61,8 +61,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     jcs = mxGetJc(prhs[0]);if(jcs==NULL){mexErrMsgTxt("pointer jcs is null");  return;}
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
     in_d = mxGetScalar(prhs[2]);if(in_d<2){mexErrMsgTxt("dimension error");  return;}
-    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter==NULL){mexErrMsgTxt("max_iter can not be 0");  return;}
-    in_precision = mxGetScalar(prhs[4]);if(in_max_iter==NULL){mexErrMsgTxt("precisionr can not be 0");  return;}
+    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter<=0){mexErrMsgTxt("max_iter can not be 0");  return;}
+    in_precision = mxGetScalar(prhs[4]);if(in_max_iter<=0){mexErrMsgTxt("precisionr can not be 0");  return;}
     // set the bounds according to the input
     if (nrhs==8){
         lower = mxGetScalar(prhs[5]);//if(lower==NULL){mexErrMsgTxt("pointer lower is null");  return;};
@@ -88,8 +88,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * lengths of in_A and irs are both NZmax
      * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
     */
-    int NZmax = jcs[in_d];
-    mexPrintf("CBCD size 2.cpp...Sparsity = %.5f.\n",NZmax/double((in_d*in_d)));
+    double sparsity = jcs[in_d]/double(in_d*in_d);
+    mexPrintf("CBCD size 2.cpp...Sparsity = %.5f.\n",sparsity);
     // allocate output, and init as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
@@ -174,7 +174,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double b1,b2,detA2;
     // FLAG stores the label of last choice of each block
     // label stores the last choice of all the blocks in last epoch
-    int* labels=new int[in_d];  if(labels==NULL){mexErrMsgTxt("pointer labels is null");  return;} ;
+    long int* labels=new long int[in_d];  if(labels==NULL){mexErrMsgTxt("pointer labels is null");  return;} ;
     for (i=0;i<in_d;i++){
         labels[i]=0;
     }
