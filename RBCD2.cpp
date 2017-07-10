@@ -3,7 +3,7 @@
 #define EPSILON 2.220446e-16
 /**
  * RBCD size 2 with general constraints
- * random choose from d-1 blocks with overlap
+ * random choose uniformly from [d/2] blocks without overlap
  **/
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -21,10 +21,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * [6] lower bound l
      * [7] upper bound u
      * [8] initial value of out_x
-     * [9] random parameter alpha
      */
     // first check the number of input values
-    if(nrhs!=9){mexErrMsgTxt("Input Value Error");  return;}
+    if(nrhs!=8){mexErrMsgTxt("Input Value Error");  return;}
     // [1]
     double *in_A;
     mwIndex *irs;// for sparse matrix
@@ -43,8 +42,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double upper;
     // [8]
     double in_init;
-    // [9]
-    double in_alpha;
     /** ouput args
      * [1] the minimizer out_x
      * [2] the KKT condition residual
@@ -78,8 +75,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     upper = mxGetScalar(prhs[6]);
     // [8]
     in_init = mxGetScalar(prhs[7]);
-    // [9]
-    in_alpha = mxGetScalar(prhs[8]);
     /* make sure that the upper bound is larger than the lower bound
      * if the lower bound is greater, 
      * then we solve for an unconstrained problem
@@ -87,12 +82,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (lower>=upper){mexPrintf("Bounds Error, Results without constraints\n");in_init=0;}
     /* if the in_init is out of the bound, set it as lower */
     else if ((in_init<lower)||(in_init>upper)){in_init=lower;} 
-    /* Non-Zero elements, is the value of last entry of jcs
-     * lengths of in_A and irs are both NZmax
-     * length of jcs is in_d + 1, and the last entry of jcs has value NZmax
-    */
-    double sparsity = jcs[in_d]/double(in_d*in_d);
-    mexPrintf("RBCD size 2.cpp...Sparsity = %.5f.\n",sparsity);
+    // print begin
+    mexPrintf("RBCD size 2.cpp....\n");
     // [1] allocate output, and init as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
@@ -104,17 +95,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // in-code parameters
     // allocate gradient, will delete later
     double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
-    /*allocate diagonal, for solving small block problem, 
+    /* allocate diagonal, for solving small block problem, 
      * diag_A0 is the main diagonal, diag_A1 is the one below(and above, as symmetric)
      * although the length of diag_A1 is in_d-1, set it as in_d, 
      * the in_d th element will be 0 and not be used.
      */
     double* diag_A0=new double[in_d];  if(diag_A0==NULL){mexErrMsgTxt("pointer diag_A0 is null");  return;} 
     double* diag_A1=new double[in_d];  if(diag_A1==NULL){mexErrMsgTxt("pointer diag_A1 is null");  return;} 
-    /*grad and residual of init loop
-     *out_x is initialized as in_init
-     *in the loop the elements from the diagonal are also extracted
-    */
+    /* grad and residual of init loop
+     * out_x is initialized as in_init
+     * in the loop the elements from the diagonal are also extracted
+     */
     // init gradient as 0s
     // extract i th element in diagonal and below
     for (i=0;i<in_d;i++){
@@ -125,11 +116,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for (j=jcs[i];j<jcs[i+1];j++){
             if (irs[j]==i){
                 diag_A0[i]=in_A[j];
-                //mexPrintf("diag_A0[%d]=%.5f;\n",i,in_A[j]);
             }
             else if (irs[j]==i+1){
                 diag_A1[i]=in_A[j];
-                //mexPrintf("diag_A1[%d]=%.5f;\n",i,in_A[j]);
             }
         }
     }
@@ -298,7 +287,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                             break;
                         }
                     }
-                    //if the last choice does not match this time, 9 cases again
+                    // if the last choice does not match this time, 9 cases again
                     if (FLAG==0){
                         // first assume x2=lower
                         if (b1<=(a11+a12)*lower && b2<=(a21+a22)*lower){//case 1
@@ -351,7 +340,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                     }
                     // update the label of the block
                     labels[i] = FLAG;
-                    //update temporal grad
+                    // update temporal grad
                     for (j=jcs[i];j<jcs[i+1];j++){
                         grad[irs[j]] += in_A[j]*out_x[i];
                     }
@@ -360,37 +349,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                     }
                 }
                 else {
-                    //calc temporal grad
+                    // calc temporal grad
                     for (j=jcs[i];j<jcs[i+1];j++){
                         grad[irs[j]] -= in_A[j]*out_x[i];
                     }
-                    //descent
+                    // descent
                     out_x[i] = (in_b[i]-grad[i])/diag_A0[i];
-                    //bounds
+                    // bounds
                     if (out_x[i]>upper){
                         out_x[i] = upper;
                     }
                     if (out_x[i]<lower){
                         out_x[i] = lower;
                     }
-                    //update temporal grad
+                    // update temporal grad
                     for (j=jcs[i];j<jcs[i+1];j++){
                         grad[irs[j]] += in_A[j]*out_x[i];
                     }
                 }
             }
-            // when finishes (in_d/2) updates, we calculate the true gradient
-            // init gradient as 0s
-            for (i=0;i<in_d;i++){
-                grad[i]=0;
-            }
-            //update true gradient
-            for (j=0;j<in_d;j++){
-                for (i=jcs[j];i<jcs[j+1];i++){
-                    grad[irs[i]] += in_A[i]*out_x[j];
-                }
-            }
-            //get the residual
+            // get the residual
             residual = 0;
             for (i=0;i<in_d;i++){
                 // i th residual
@@ -411,7 +389,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             }
             residual = sqrt(residual);
             out_r[epoch] = residual;
-            //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
             epoch++;
         }
     }
@@ -469,17 +446,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                     }
                 }
             }
-            // when finishes (in_d/2) updates, we calculate the true gradient
-            // init gradient as 0s
-            for (i=0;i<in_d;i++){
-                grad[i]=0;
-            }
-            // update true gradient
-            for (j=0;j<in_d;j++){
-                for (i=jcs[j];i<jcs[j+1];i++){
-                    grad[irs[i]] += in_A[i]*out_x[j];
-                }
-            }
             // get the residual
             residual = 0;
             for (i=0;i<in_d;i++){
@@ -489,7 +455,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             }
             residual = sqrt(residual);
             out_r[epoch] = residual;
-            //mexPrintf("epoch:%5d, residual=%.15f\n",epoch,residual);
             epoch++;
         }
     }
@@ -498,7 +463,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for (i=0;i<epoch;i++){
         r[i]=out_r[i];
     }
-    delete grad; delete out_r; delete diag_A0; delete diag_A1; delete labels;
-    //mexPrintf("dt1 = %.5f, dt2 = %.5f, dt3 = %.5f, dt4 = %.5f\n",dt1,dt2,dt3,dt4);
+    delete [] grad; delete [] out_r; delete [] diag_A0;
+    delete [] diag_A1; delete [] labels;
     mexPrintf("epoch:%5d, residual=%.15f\nEnd of RBCD size 2.cpp\n",epoch-1,residual);
 }
