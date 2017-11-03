@@ -1,4 +1,4 @@
-function [xcur, ycur, epoch] = PDAL(A, b)
+function [xcur, ycur, epoch, fx] = PDAL(A, b, iters, acc,init)
 %% PDAL from paper
 % 'Malitsky, Pock - A first-order primal-dual algorithm with
 % linesearch(2016)'
@@ -12,10 +12,10 @@ function [xcur, ycur, epoch] = PDAL(A, b)
 % init
 disp('To compare, the input of corresponding CBCD functions should be A^T*A and A^T*b');
 dim  = size(A,1);
-xcur = zeros(dim,1);
+xcur = ones(dim,1)*init;
 ycur = A*xcur-b;
 miu  = 0.5;
-tau  = 1/sqrt(max(eig(A'*A)));
+tau  = 1/max(svds(A));
 beta = 1;
 theta= 1;
 gamma= 0.5;
@@ -23,8 +23,9 @@ residual = 1;
 A2 = A'* A;
 b2 = A'* b;
 epoch = 1;
+fx=zeros(iters,1)/0;
 % main iteration
-while residual>1E-12 && epoch<=1000
+while residual>acc && epoch<=iters
     % 1 compute
     x_old = xcur;
     xcur = max(min(xcur - tau*A*ycur,1),0);
@@ -40,6 +41,7 @@ while residual>1E-12 && epoch<=1000
     ycur = (ycur+sigma*A*xbar-sigma*b)/(1+sigma);
     % 2.b break line if
     break_line = sqrt(beta)*tau*norm(A*(ycur-y_old))/norm(ycur-y_old);
+    %fprintf('break_line = %.8f\n',break_line);
     count=1;
     while break_line>1 && count<=50
         % 2.a compute
@@ -61,7 +63,11 @@ while residual>1E-12 && epoch<=1000
     index = find(xcur>0+2*eps & xcur<1-2*eps);
     residual = norm([grad(index)-b2(index);min(0,grad(index_l)-b2(index_l));max(0,grad(index_u)-b2(index_u))],2);
     %yout = fval(A2,b2,xcur);
-    %fprintf('epoch;%5d, residual:%.15f, fval:%.15f\n',epoch,residual,yout);
+    fx(epoch)=fval(A2,b2,xcur);
+    if mod(epoch, 100)==0
+        fprintf('epoch;%5d, residual:%.15f, fval:%.15f\n',epoch,residual,fx(epoch));
+    end
     epoch = epoch+1;
 end
+fx(isnan(fx))=[];
 end

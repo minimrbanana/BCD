@@ -4,7 +4,6 @@
 /**
  * CBCD size 1 with general constraints
  **/
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     /** input args
@@ -49,41 +48,58 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      *     and final output is *r
      */
     // [1]
-    double *out_x;
+    double *out_x;// the minimizer
     // [2]
     double residual;
     // parameters in the function
     long int i,j,epoch;//loop
-    double df;
-    // get input args [1]...[8]
+    double df;//gradient in KKT residual
+    /** 
+     * get input args
+     **/
+    // [1]
     in_A = mxGetPr(prhs[0]);if(in_A==NULL){mexErrMsgTxt("pointer in_A is null");  return;}
     irs = mxGetIr(prhs[0]);if(irs==NULL){mexErrMsgTxt("pointer irs is null");  return;}
     jcs = mxGetJc(prhs[0]);if(jcs==NULL){mexErrMsgTxt("pointer jcs is null");  return;}
+    // [2]
     in_b = mxGetPr(prhs[1]);if(in_b==NULL){mexErrMsgTxt("pointer in_b is null");  return;}
+    // [3]
     in_d = mxGetScalar(prhs[2]);if(in_d<1){mexErrMsgTxt("dimension error");  return;}
-    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter<=0){mexErrMsgTxt("max_iter can not be 0");  return;}
-    in_precision = mxGetScalar(prhs[4]);if(in_max_iter<=0){mexErrMsgTxt("precisionr can not be 0");  return;}
+    // [4]
+    in_max_iter = mxGetScalar(prhs[3]);if(in_max_iter<=0){mexErrMsgTxt("max_iter error");  return;}
+    // [5]
+    in_precision = mxGetScalar(prhs[4]);if(in_precision<=0){mexErrMsgTxt("precision error");  return;}
+    // [6]
     lower = mxGetScalar(prhs[5]);
+    // [7]
     upper = mxGetScalar(prhs[6]);
+    // [8]
     in_init = mxGetScalar(prhs[7]);
     /* make sure that the upper bound is larger than the lower bound
      * if the lower bound is greater, 
-     * then we solve for an unconstrained problem, with init 0
+     * then we solve for an unconstrained problem
      */
-    if (lower>=upper){mexPrintf("Bounds Error, Results without constraints\n");in_init=0;}
+    if (lower>=upper){mexPrintf("Bounds Error, Results without constraints\n");}
     /* if the in_init is out of the bound, set it as lower */
-    else if ((in_init<lower)||(in_init>upper)){in_init=lower;}
+    else if ((in_init<lower)||(in_init>upper)){mexPrintf("x_init Error, Default: lower\n");in_init=lower;}
     // print begin
     mexPrintf("CBCD size 1.cpp...\n");
-    // allocate output, and init as all in_init
+    /** 
+     * allocate output
+     **/
+    // [1] init out_x as all in_init
     plhs[0] = mxCreateDoubleMatrix(in_d,1,mxREAL);
     out_x = mxGetPr(plhs[0]);if(out_x==NULL){mexErrMsgTxt("pointer out_x is null");  return;} 
     for (i=0;i<in_d;i++){
         out_x[i] = in_init;
     }
-    // pre-allocate output of residual, length as max_iter
+    // [2] pre-allocate output of residual, length as max_iter
     double* out_r=new double[in_max_iter]; if(out_r==NULL){mexErrMsgTxt("pointer out_r is null");  return;} 
+    /**
+     * in-code parameters
+     **/
     // allocate gradient, will delete later
+    // in the function gradient is A*x, without -b
     double* grad=new double[in_d];  if(grad==NULL){mexErrMsgTxt("pointer grad is null");  return;} 
     // allocate diagonal, for solving small block problem
     double* diag_A=new double[in_d];  if(diag_A==NULL){mexErrMsgTxt("pointer diag_A is null");  return;} 
@@ -92,7 +108,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      * in the loop the elements from the diagonal are also extracted
      */
     // init gradient as 0s
-    // extract i th element in diagonal and below
+    // extract i th element in diagonal
     for (i=0;i<in_d;i++){
         grad[i]=0;
         // i th diag_A[]
@@ -151,6 +167,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             for (i=0;i<in_d;i++){
                 // calc temporal grad
+                // sparse g=g-A(:,i)*x(i) and i+1
                 for (j=jcs[i];j<jcs[i+1];j++){
                     grad[irs[j]] -= in_A[j]*out_x[i];
                 }
@@ -200,7 +217,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     else if (lower>=upper){
         while ((residual>in_precision)&&(epoch<in_max_iter)){
             for (i=0;i<in_d;i++){
-                //calc temporal grad
+                // calc temporal grad
                 for (j=jcs[i];j<jcs[i+1];j++){
                     grad[irs[j]] -= in_A[j]*out_x[i];
                 }
