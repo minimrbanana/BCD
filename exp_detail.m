@@ -14,7 +14,7 @@ EXP.save = 1;
 % otherwise cannot save all the convergence matrices (dim=n_loop*mex_iter)
 EXP.max_iter = 2000000;  
 % number of loops
-EXP.n_loop = 100;
+EXP.n_loop = 1000;
 % precision
 EXP.precision = 1E-10;
 % the bounds and initial state and alpha in RBCD
@@ -87,6 +87,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 6
         % A has block size3 on the diagonal with shift
         d = 5000;
@@ -178,6 +179,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init=0.5;
     case 101
         % A is a 5-band matrix without noise
         d = 5000; 
@@ -248,13 +250,26 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    case 108
+        % A is a tri-diagonal matrix without noise
+        d = 5000; 
+        e1 = ones(d,1);
+        EXP.A = spdiags([-e1,-e1],[-1,1],d,d);
+        diagonal = -sum(EXP.A);
+        diagonal(diagonal==0)=1;% if sum of row/colomn is 0, set diagonal as 1
+        EXP.A = spdiags(diagonal'+lambda,0,EXP.A);
+        EXP.d = d;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+        EXP.init=0;
     case 200
         % A is a random symmetric matrix 
         % sparsity 3/d
         EXP.d = 5000; 
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
-        EXP.save = 1;
+        EXP.save = 0.5;
     case 201
         % A is a random symmetric matrix 
         % sparsity 5/d
@@ -262,6 +277,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 202
         % A is a random symmetric matrix 
         % sparsity 7/d
@@ -269,6 +285,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 203
         % A is a random symmetric matrix 
         % sparsity 9/d
@@ -276,6 +293,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 204
         % A is a random symmetric matrix 
         % sparsity 11/d
@@ -283,6 +301,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;    
+        EXP.init  = 0.5;
     case 205
         % A is a random symmetric matrix 
         % sparsity 13/d
@@ -290,6 +309,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1; 
+        EXP.init  = 0.5;
     case 206
         % A is a random symmetric matrix 
         % sparsity 15/d
@@ -297,6 +317,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;  
+        EXP.init  = 0.5;
     case 207
         % A is a random symmetric matrix 
         % sparsity 17/d
@@ -305,6 +326,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 208
         % A is a random symmetric matrix 
         % sparsity 30/d
@@ -313,6 +335,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 209
         % A is a random symmetric matrix 
         % sparsity 40/d
@@ -321,6 +344,7 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+        EXP.init  = 0.5;
     case 300
         % A is a random symmetric matrix 
         % sparsity 3/d
@@ -497,6 +521,44 @@ switch exp_idx
         EXP.isplot = 0;
         EXP.plot_convergence = 1;
         EXP.save = 1;
+    case 904
+        % worst case paper Ac
+        d = 30;
+        c = 0.8;
+        A = ones(d,d)*c;
+        A = A + diag(ones(d,1)*(1-c));
+        EXP.A = sparse(A);
+        EXP.d = d;
+        % for the worst case the interval must be larger.
+        % here we take [-100,100]
+        EXP.lower = -100;
+        EXP.upper = 100;
+        EXP.precision = 1E-5;
+        EXP.isplot = 0;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+        EXP.init=0.5;
+        EXP.n_loop = 1;
+    case 905
+        % worst case paper Ac
+        d = 30;
+        c = 0.8;
+        A = ones(d,d)*c;
+        A = A + diag(ones(d,1)*(1-c));
+        [Q,~,~] = svd(rand(d,d));
+        A = Q'*A*Q;
+        EXP.A = sparse(A);
+        EXP.d = d;
+        % for the worst case the interval must be larger.
+        % here we take [-100,100]
+        EXP.lower = -100;
+        EXP.upper = 100;
+        EXP.precision = 1E-5;
+        EXP.isplot = 1;
+        EXP.plot_convergence = 1;
+        EXP.save = 1;
+        EXP.init=0.5;
+        EXP.n_loop = 1;
     otherwise
         error('index not defined');
         

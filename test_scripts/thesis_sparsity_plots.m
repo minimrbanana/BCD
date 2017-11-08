@@ -4,7 +4,7 @@ Fsize = 18;
 res2o1 = zeros(1,9);
 res3o1 = zeros(1,9);
 i=200;
-filename='../result/EXP_idx_300/EXP.mat';
+filename='../result/EXP_idx_200/EXP.mat';
 load(filename);
 res2o1(i-199) = EXP.C_ep2_OVER_ep1;
 res3o1(i-199) = EXP.C_ep3_OVER_ep1;

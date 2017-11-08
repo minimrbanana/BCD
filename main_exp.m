@@ -74,12 +74,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix A
     %
     profile on;
-    [~, kkt1a]  = CBCD_size1_gc(EXP.A, b, d, iters,pre,l,u,x0);
-    [~, kkt2a]  = CBCD_size2_gc(EXP.A, b, d, iters,pre,l,u,x0);
-    [~, kkt3a]  = CBCD_size3_gc(EXP.A, b, d, iters,pre,l,u,x0);
-    [~, kktr1a] = RBCD_size1_gc_u(EXP.A, b, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2a] = RBCD2(EXP.A, b, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3a] = RBCD3(EXP.A, b, d, iters,pre,l,u,x0,alpha);
+    [~, kkt1a]  = CBCD1(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kkt2a]  = CBCD2(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kkt3a]  = CBCD3(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kktr1a] = RBCD1(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kktr2a] = RBCD2(EXP.A, b, d, iters,pre,l,u,x0);
+    [~, kktr3a] = RBCD3(EXP.A, b, d, iters,pre,l,u,x0);
     p=profile('info');
     profile off;
     if length(kkt1a)>iters-2
@@ -151,12 +151,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix B
     %
     profile on;
-    [~, kkt1b]  = CBCD_size1_gc(B, Bb, d, iters,pre,l,u,x0);
-    [~, kkt2b]  = CBCD_size2_gc(B, Bb, d, iters,pre,l,u,x0);
-    [~, kkt3b]  = CBCD_size3_gc(B, Bb, d, iters,pre,l,u,x0);
-    [~, kktr1b] = RBCD_size1_gc_u(B, Bb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2b] = RBCD2(B, Bb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3b] = RBCD3(B, Bb, d, iters,pre,l,u,x0,alpha);
+    [~, kkt1b]  = CBCD1(B, Bb, d, iters,pre,l,u,x0);
+    [~, kkt2b]  = CBCD2(B, Bb, d, iters,pre,l,u,x0);
+    [~, kkt3b]  = CBCD3(B, Bb, d, iters,pre,l,u,x0);
+    [~, kktr1b] = RBCD1(B, Bb, d, iters,pre,l,u,x0);
+    [~, kktr2b] = RBCD2(B, Bb, d, iters,pre,l,u,x0);
+    [~, kktr3b] = RBCD3(B, Bb, d, iters,pre,l,u,x0);
     p=profile('info');
     profile off;
     % save time for matrix B
@@ -224,12 +224,12 @@ for loop=1:EXP.n_loop
     % runtime of matrix C
     %
     profile on;
-    [~, kkt1c]  = CBCD_size1_gc(C, Cb, d, iters,pre,l,u,x0);
-    [~, kkt2c]  = CBCD_size2_gc(C, Cb, d, iters,pre,l,u,x0);
-    [~, kkt3c]  = CBCD_size3_gc(C, Cb, d, iters,pre,l,u,x0);
-    [~, kktr1c] = RBCD_size1_gc_u(C, Cb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr2c] = RBCD2(C, Cb, d, iters,pre,l,u,x0,alpha);
-    [~, kktr3c] = RBCD3(C, Cb, d, iters,pre,l,u,x0,alpha);
+    [~, kkt1c]  = CBCD1(C, Cb, d, iters,pre,l,u,x0);
+    [~, kkt2c]  = CBCD2(C, Cb, d, iters,pre,l,u,x0);
+    [~, kkt3c]  = CBCD3(C, Cb, d, iters,pre,l,u,x0);
+    [~, kktr1c] = RBCD1(C, Cb, d, iters,pre,l,u,x0);
+    [~, kktr2c] = RBCD2(C, Cb, d, iters,pre,l,u,x0);
+    [~, kktr3c] = RBCD3(C, Cb, d, iters,pre,l,u,x0);
     p=profile('info');
     profile off;
     % save time for matrix C

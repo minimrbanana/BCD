@@ -1,7 +1,7 @@
 function thesis_plot_synthetic(idx)
 %% plot from EXP.mat
-% if EXP is given, as called in the main_exp function, use it, 
-% else as called alone, load EXP from the 'result' folder
+% if EXP is given, this function saves the plots in pdf format.
+% same as plot4EXP function 
 close all;
 % dir to save the plots
 saveDir = ['./thesis_synthetic/EXP_idx_' num2str(idx) '/'];
